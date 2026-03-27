@@ -1,0 +1,72 @@
+{
+  "House Energy & Commerce": {
+    "committee_id": "HSIF",
+    "chamber": "house",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "House Natural Resources": {
+    "committee_id": "HSII",
+    "chamber": "house",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "House Transportation & Infrastructure": {
+    "committee_id": "HSPW",
+    "chamber": "house",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "House Ways & Means": {
+    "committee_id": "HSWM",
+    "chamber": "house",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "House Science, Space, & Technology": {
+    "committee_id": "HSSY",
+    "chamber": "house",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "Senate Energy & Natural Resources": {
+    "committee_id": "SSEG",
+    "chamber": "senate",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "Senate Environment & Public Works": {
+    "committee_id": "SSEV",
+    "chamber": "senate",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "Senate Agriculture, Nutrition, & Forestry": {
+    "committee_id": "SSAF",
+    "chamber": "senate",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "Senate Foreign Relations": {
+    "committee_id": "SSFR",
+    "chamber": "senate",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  },
+  "Senate Commerce, Science, & Transportation": {
+    "committee_id": "SSCM",
+    "chamber": "senate",
+    "members": [],
+    "count": 0,
+    "fetched_utc": "2026-02-26T18:35:00.262037+00:00"
+  }
+}

@@ -1,0 +1,431 @@
+
+{
+  "House Energy & Commerce": {
+    "chamber": "House",
+    "homepage": "https://energycommerce.house.gov/",
+    "hearings": "https://energycommerce.house.gov/committee-activity/hearings",
+    "subcommittees_page": "https://energycommerce.house.gov/subcommittees",
+    "subcommittees": [
+      { "name": "Energy", "url": "https://energycommerce.house.gov/committees/subcommittee/energy" },
+      { "name": "Environment", "url": "https://energycommerce.house.gov/committees/subcommittee/environment" },
+      { "name": "Communications & Technology", "url": "https://energycommerce.house.gov/committees/subcommittee/communications-technology" },
+      { "name": "Commerce, Manufacturing, and Trade", "url": "https://energycommerce.house.gov/committees/subcommittee/commerce" },
+      { "name": "Oversight & Investigations", "url": "https://energycommerce.house.gov/committees/subcommittee/oversight-investigations" }
+    ]
+  },
+
+  "House Natural Resources": {
+    "chamber": "House",
+    "homepage": "https://naturalresources.house.gov/",
+    "calendar": "https://naturalresources.house.gov/calendar/",
+    "subcommittees_page": "https://naturalresources.house.gov/issues/subcommittees/",
+    "subcommittees": [
+      { "name": "Energy and Mineral Resources", "url": null },
+      { "name": "Water, Wildlife and Fisheries", "url": null },
+      { "name": "Federal Lands", "url": null },
+      { "name": "Indian and Insular Affairs", "url": null },
+      { "name": "Oversight and Investigations", "url": null }
+    ]
+  },
+
+  "House Transportation & Infrastructure": {
+    "chamber": "House",
+    "homepage": "https://transportation.house.gov/",
+    "calendar": "https://transportation.house.gov/calendar/",
+    "subcommittees_page": "https://transportation.house.gov/subcommittees/",
+    "subcommittees": [
+      { "name": "Aviation", "url": null },
+      { "name": "Coast Guard and Maritime Transportation", "url": null },
+      { "name": "Economic Development, Public Buildings, and Emergency Management", "url": null },
+      { "name": "Highways and Transit", "url": null },
+      { "name": "Railroads, Pipelines, and Hazardous Materials", "url": null },
+      { "name": "Water Resources and Environment", "url": null }
+    ]
+  },
+
+  "House Science, Space, & Technology": {
+    "chamber": "House",
+    "homepage": "https://science.house.gov/",
+    "hearings": "https://science.house.gov/hearings",
+    "committee_schedule": "https://science.house.gov/committee-schedule",
+    "subcommittees_page": "https://science.house.gov/subcommittees",
+    "subcommittees": [
+      { "name": "Energy", "url": null },
+      { "name": "Environment", "url": null },
+      { "name": "Investigations & Oversight", "url": null },
+      { "name": "Research and Technology", "url": null },
+      { "name": "Space and Aeronautics", "url": null }
+    ]
+  },
+
+  "House Ways & Means": {
+    "chamber": "House",
+    "homepage": "https://waysandmeans.house.gov/",
+    "hearings": "https://waysandmeans.house.gov/hearings/",
+    "subcommittees_page": "https://waysandmeans.house.gov/subcommittees",
+    "subcommittees": [
+      { "name": "Health", "url": null },
+      { "name": "Oversight", "url": null },
+      { "name": "Social Security", "url": null },
+      { "name": "Tax", "url": null },
+      { "name": "Trade", "url": null },
+      { "name": "Worker and Family Support", "url": null }
+    ]
+  },
+
+  "Senate Energy & Natural Resources": {
+    "chamber": "Senate",
+    "homepage": "https://www.energy.senate.gov/",
+    "hearings": "https://www.energy.senate.gov/hearings",
+    "subcommittees_page": "https://www.energy.senate.gov/subcommittees",
+    "subcommittees": [
+      { "name": "Energy", "url": null },
+      { "name": "National Parks", "url": null },
+      { "name": "Public Lands, Forests, and Mining", "url": null },
+      { "name": "Water and Power", "url": null }
+    ]
+  },
+
+  "Senate Environment & Public Works": {
+    "chamber": "Senate",
+    "homepage": "https://www.epw.senate.gov/",
+    "hearings": "https://www.epw.senate.gov/public/index.cfm/hearings",
+    "subcommittees_page": "https://www.epw.senate.gov/public/index.cfm/subcommittees",
+    "subcommittees": [
+      { "name": "Chemical Safety, Waste Management, Environmental Justice, and Regulatory Oversight", "url": null },
+      { "name": "Clean Air, Climate, and Nuclear Safety", "url": null },
+      { "name": "Fisheries, Water, and Wildlife", "url": null },
+      { "name": "Transportation and Infrastructure", "url": null }
+    ]
+  },
+
+  "Senate Commerce, Science, & Transportation": {
+    "chamber": "Senate",
+    "homepage": "https://www.commerce.senate.gov/",
+    "hearings": "https://www.commerce.senate.gov/hearings",
+    "subcommittees_page": "https://www.commerce.senate.gov/subcommittees",
+    "subcommittees": [
+      { "name": "Aviation Safety, Operations, and Innovation", "url": null },
+      { "name": "Communications, Media, and Broadband", "url": null },
+      { "name": "Consumer Protection, Product Safety, and Data Security", "url": null },
+      { "name": "Oceans, Fisheries, Climate Change, and Manufacturing", "url": null },
+      { "name": "Space and Science", "url": null },
+      { "name": "Surface Transportation, Freight, Pipelines, and Safety", "url": null },
+      { "name": "Tourism, Trade, and Export Promotion", "url": null }
+    ]
+  },
+
+  "Senate Agriculture, Nutrition, & Forestry": {
+    "chamber": "Senate",
+    "homepage": "https://www.agriculture.senate.gov/",
+    "hearings": "https://www.agriculture.senate.gov/hearings",
+    "subcommittees_page": "https://www.senate.gov/committees/committeememberships.htm#SSAF00",
+    "subcommittees": [
+      { "name": "Conservation, Climate, Forestry, and Natural Resources", "url": null },
+      { "name": "Commodities, Risk Management, and Trade", "url": null },
+      { "name": "Food and Nutrition, Specialty Crops, Organics, and Research", "url": null },
+      { "name": "Livestock, Dairy, Poultry, Local Food Systems, and Food Safety and Security", "url": null },
+      { "name": "Rural Development and Energy", "url": null }
+    ]
+  },
+
+  "Senate Foreign Relations": {
+    "chamber": "Senate",
+    "homepage": "https://www.foreign.senate.gov/",
+    "hearings": "https://www.foreign.senate.gov/hearings",
+    "subcommittees_page": "https://www.senate.gov/committees/committeememberships.htm#SSFR00",
+    "subcommittees": [
+      { "name": "Africa and Global Health Policy", "url": null },
+      { "name": "East Asia, The Pacific, and International Cybersecurity Policy", "url": null },
+      { "name": "Europe and Regional Security Cooperation", "url": null },
+      { "name": "Near East, South Asia, Central Asia, and Counterterrorism", "url": null },
+      { "name": "State Department and USAID Management, International Operations, and Bilateral International Development", "url": null },
+      { "name": "Western Hemisphere, Transnational Crime, Civilian Security, Democracy, Human Rights, and Global Women's Issues", "url": null }
+    ]
+  },
+
+  "House Agriculture": {
+    "chamber": "House",
+    "homepage": "https://agriculture.house.gov/",
+    "hearings": "https://agriculture.house.gov/calendar/",
+    "subcommittees": [
+      { "name": "Commodity Markets, Digital Assets, and Rural Development", "url": null },
+      { "name": "Conservation, Research, and Biotechnology", "url": null },
+      { "name": "General Farm Commodities, Risk Management, and Credit", "url": null },
+      { "name": "Livestock, Dairy, and Poultry", "url": null },
+      { "name": "Nutrition, Foreign Agriculture, and Horticulture", "url": null }
+    ]
+  },
+
+  "House Appropriations": {
+    "chamber": "House",
+    "homepage": "https://appropriations.house.gov/",
+    "hearings": "https://appropriations.house.gov/events/hearings",
+    "subcommittees": [
+      { "name": "Agriculture, Rural Development, FDA, and Related Agencies", "url": null },
+      { "name": "Commerce, Justice, Science, and Related Agencies", "url": null },
+      { "name": "Defense", "url": null },
+      { "name": "Energy and Water Development", "url": null },
+      { "name": "Financial Services and General Government", "url": null },
+      { "name": "Homeland Security", "url": null },
+      { "name": "Interior, Environment, and Related Agencies", "url": null },
+      { "name": "Labor, Health and Human Services, Education, and Related Agencies", "url": null },
+      { "name": "Legislative Branch", "url": null },
+      { "name": "Military Construction, Veterans Affairs, and Related Agencies", "url": null },
+      { "name": "State, Foreign Operations, and Related Programs", "url": null },
+      { "name": "Transportation, and Housing and Urban Development", "url": null }
+    ]
+  },
+
+  "House Armed Services": {
+    "chamber": "House",
+    "homepage": "https://armedservices.house.gov/",
+    "hearings": "https://armedservices.house.gov/hearings",
+    "subcommittees": [
+      { "name": "Cyber, Information Technologies, and Innovation", "url": null },
+      { "name": "Military Personnel", "url": null },
+      { "name": "Readiness", "url": null },
+      { "name": "Seapower and Projection Forces", "url": null },
+      { "name": "Strategic Forces", "url": null },
+      { "name": "Tactical Air and Land Forces", "url": null }
+    ]
+  },
+
+  "House Budget": {
+    "chamber": "House",
+    "homepage": "https://budget.house.gov/",
+    "hearings": "https://budget.house.gov/hearings",
+    "subcommittees": []
+  },
+
+  "House Financial Services": {
+    "chamber": "House",
+    "homepage": "https://financialservices.house.gov/",
+    "hearings": "https://financialservices.house.gov/calendar/?EventTypeID=577",
+    "subcommittees": [
+      { "name": "Digital Assets, Financial Technology and Artificial Intelligence", "url": null },
+      { "name": "Financial Institutions and Monetary Policy", "url": null },
+      { "name": "Housing and Insurance", "url": null },
+      { "name": "Investor Protection, Entrepreneurship, and Capital Markets", "url": null },
+      { "name": "National Security, Illicit Finance, and International Financial Institutions", "url": null },
+      { "name": "Oversight and Investigations", "url": null }
+    ]
+  },
+
+  "House Foreign Affairs": {
+    "chamber": "House",
+    "homepage": "https://foreignaffairs.house.gov/",
+    "hearings": "https://foreignaffairs.house.gov/hearings",
+    "subcommittees": [
+      { "name": "Africa", "url": null },
+      { "name": "Indo-Pacific", "url": null },
+      { "name": "Middle East, North Africa and Central Asia", "url": null },
+      { "name": "Oversight and Accountability", "url": null },
+      { "name": "Western Hemisphere", "url": null }
+    ]
+  },
+
+  "House Homeland Security": {
+    "chamber": "House",
+    "homepage": "https://homeland.house.gov/",
+    "hearings": "https://homeland.house.gov/hearings/",
+    "subcommittees": [
+      { "name": "Border Security and Enforcement", "url": null },
+      { "name": "Counterterrorism, Law Enforcement, and Intelligence", "url": null },
+      { "name": "Cybersecurity and Infrastructure Protection", "url": null },
+      { "name": "Emergency Management and Technology", "url": null },
+      { "name": "Oversight, Investigations, and Accountability", "url": null },
+      { "name": "Transportation and Maritime Security", "url": null }
+    ]
+  },
+
+  "House Judiciary": {
+    "chamber": "House",
+    "homepage": "https://judiciary.house.gov/",
+    "hearings": "https://judiciary.house.gov/committee-activity/hearings",
+    "subcommittees": [
+      { "name": "Constitution and Limited Government", "url": null },
+      { "name": "Courts, Intellectual Property, and the Internet", "url": null },
+      { "name": "Crime and Federal Government Surveillance", "url": null },
+      { "name": "Immigration Integrity, Security, and Enforcement", "url": null },
+      { "name": "Responsiveness and Accountability to Citizens", "url": null }
+    ]
+  },
+
+  "House Oversight & Accountability": {
+    "chamber": "House",
+    "homepage": "https://oversight.house.gov/",
+    "hearings": "https://oversight.house.gov/hearings",
+    "subcommittees": [
+      { "name": "Cybersecurity, Information Technology, and Government Innovation", "url": null },
+      { "name": "Economic Growth, Energy Policy, and Regulatory Affairs", "url": null },
+      { "name": "Government Operations and the Federal Workforce", "url": null },
+      { "name": "Health Care and Financial Services", "url": null },
+      { "name": "National Security, the Border, and Foreign Affairs", "url": null }
+    ]
+  },
+
+  "House Veterans' Affairs": {
+    "chamber": "House",
+    "homepage": "https://veterans.house.gov/",
+    "hearings": "https://veterans.house.gov/calendar/",
+    "subcommittees": [
+      { "name": "Disability Assistance and Memorial Affairs", "url": null },
+      { "name": "Economic Opportunity", "url": null },
+      { "name": "Health", "url": null },
+      { "name": "Oversight and Investigations", "url": null },
+      { "name": "Technology Modernization", "url": null }
+    ]
+  },
+
+  "House Education & the Workforce": {
+    "chamber": "House",
+    "homepage": "https://edworkforce.house.gov/",
+    "hearings": "https://edworkforce.house.gov/hearings/",
+    "subcommittees": [
+      { "name": "Early Childhood, Elementary, and Secondary Education", "url": null },
+      { "name": "Health, Employment, Labor, and Pensions", "url": null },
+      { "name": "Higher Education and Workforce Development", "url": null },
+      { "name": "Workforce Development", "url": null }
+    ]
+  },
+
+  "House Small Business": {
+    "chamber": "House",
+    "homepage": "https://smallbusiness.house.gov/",
+    "hearings": "https://smallbusiness.house.gov/hearings/",
+    "subcommittees": [
+      { "name": "Contracting and Infrastructure", "url": null },
+      { "name": "Economic Growth, Tax and Capital Access", "url": null },
+      { "name": "Innovation, Entrepreneurship, and Workforce Development", "url": null },
+      { "name": "Oversight, Investigations, and Regulations", "url": null },
+      { "name": "Rural Development, Energy, and Supply Chains", "url": null }
+    ]
+  },
+
+  "Senate Appropriations": {
+    "chamber": "Senate",
+    "homepage": "https://www.appropriations.senate.gov/",
+    "hearings": "https://www.appropriations.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Agriculture, Rural Development, Food and Drug Administration, and Related Agencies", "url": null },
+      { "name": "Commerce, Justice, Science, and Related Agencies", "url": null },
+      { "name": "Defense", "url": null },
+      { "name": "Energy and Water Development", "url": null },
+      { "name": "Financial Services and General Government", "url": null },
+      { "name": "Homeland Security", "url": null },
+      { "name": "Interior, Environment, and Related Agencies", "url": null },
+      { "name": "Labor, Health and Human Services, Education, and Related Agencies", "url": null },
+      { "name": "Military Construction, Veterans Affairs, and Related Agencies", "url": null },
+      { "name": "State, Foreign Operations, and Related Programs", "url": null },
+      { "name": "Transportation, Housing and Urban Development, and Related Agencies", "url": null }
+    ]
+  },
+
+  "Senate Armed Services": {
+    "chamber": "Senate",
+    "homepage": "https://www.armed-services.senate.gov/",
+    "hearings": "https://www.armed-services.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Airland", "url": null },
+      { "name": "Cybersecurity", "url": null },
+      { "name": "Emerging Threats and Capabilities", "url": null },
+      { "name": "Personnel", "url": null },
+      { "name": "Readiness and Management Support", "url": null },
+      { "name": "Seapower", "url": null },
+      { "name": "Strategic Forces", "url": null }
+    ]
+  },
+
+  "Senate Banking, Housing, & Urban Affairs": {
+    "chamber": "Senate",
+    "homepage": "https://www.banking.senate.gov/",
+    "hearings": "https://www.banking.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Economic Policy", "url": null },
+      { "name": "Financial Institutions and Consumer Protection", "url": null },
+      { "name": "Housing, Transportation, and Community Development", "url": null },
+      { "name": "National Security and International Trade and Finance", "url": null },
+      { "name": "Securities, Insurance, and Investment", "url": null }
+    ]
+  },
+
+  "Senate Budget": {
+    "chamber": "Senate",
+    "homepage": "https://www.budget.senate.gov/",
+    "hearings": "https://www.budget.senate.gov/hearings",
+    "subcommittees": []
+  },
+
+  "Senate Finance": {
+    "chamber": "Senate",
+    "homepage": "https://www.finance.senate.gov/",
+    "hearings": "https://www.finance.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Energy, Natural Resources, and Infrastructure", "url": null },
+      { "name": "Fiscal Responsibility and Economic Growth", "url": null },
+      { "name": "Health Care", "url": null },
+      { "name": "International Trade, Customs, and Global Competitiveness", "url": null },
+      { "name": "Social Security, Pensions, and Family Policy", "url": null },
+      { "name": "Taxation and IRS Oversight", "url": null }
+    ]
+  },
+
+  "Senate HELP": {
+    "chamber": "Senate",
+    "homepage": "https://www.help.senate.gov/",
+    "hearings": "https://www.help.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Children and Families", "url": null },
+      { "name": "Employment and Workplace Safety", "url": null },
+      { "name": "Primary Health and Retirement Security", "url": null }
+    ]
+  },
+
+  "Senate Homeland Security & Governmental Affairs": {
+    "chamber": "Senate",
+    "homepage": "https://www.hsgac.senate.gov/",
+    "hearings": "https://www.hsgac.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Emerging Threats and Spending Oversight", "url": null },
+      { "name": "Government Operations and Border Management", "url": null },
+      { "name": "Investigations", "url": null }
+    ]
+  },
+
+  "Senate Judiciary": {
+    "chamber": "Senate",
+    "homepage": "https://www.judiciary.senate.gov/",
+    "hearings": "https://www.judiciary.senate.gov/hearings",
+    "subcommittees": [
+      { "name": "Competition Policy, Antitrust, and Consumer Rights", "url": null },
+      { "name": "Constitution", "url": null },
+      { "name": "Criminal Law", "url": null },
+      { "name": "Human Rights and the Law", "url": null },
+      { "name": "Immigration, Citizenship, and Border Safety", "url": null },
+      { "name": "Intellectual Property", "url": null },
+      { "name": "Privacy, Technology, and the Law", "url": null }
+    ]
+  },
+
+  "Senate Veterans' Affairs": {
+    "chamber": "Senate",
+    "homepage": "https://www.veterans.senate.gov/",
+    "hearings": "https://www.veterans.senate.gov/hearings",
+    "subcommittees": []
+  },
+
+  "Senate Small Business & Entrepreneurship": {
+    "chamber": "Senate",
+    "homepage": "https://www.sbc.senate.gov/",
+    "hearings": "https://www.sbc.senate.gov/public/index.cfm/hearings",
+    "subcommittees": []
+  },
+
+  "Senate Intelligence": {
+    "chamber": "Senate",
+    "homepage": "https://www.intelligence.senate.gov/",
+    "hearings": "https://www.intelligence.senate.gov/hearings",
+    "subcommittees": []
+  }
+}

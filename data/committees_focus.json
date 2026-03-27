@@ -1,0 +1,58 @@
+{
+  "house": [
+    "House Energy & Commerce",
+    "House Natural Resources",
+    "House Transportation & Infrastructure",
+    "House Ways & Means",
+    "House Science, Space, & Technology"
+  ],
+  "senate": [
+    "Senate Energy & Natural Resources",
+    "Senate Environment & Public Works",
+    "Senate Agriculture, Nutrition, & Forestry",
+    "Senate Foreign Relations",
+    "Senate Commerce, Science, & Transportation"
+  ],
+  "focus_committees": [
+    "House Energy & Commerce",
+    "House Natural Resources",
+    "House Transportation & Infrastructure",
+    "House Ways & Means",
+    "House Science, Space, & Technology",
+    "Senate Energy & Natural Resources",
+    "Senate Environment & Public Works",
+    "Senate Agriculture, Nutrition, & Forestry",
+    "Senate Foreign Relations",
+    "Senate Commerce, Science, & Transportation"
+  ],
+  "topic_keywords": [
+    "Carbon Capture",
+    "Carbon Dioxide Removal",
+    "Cement and Concrete",
+    "Clean Manufacturing",
+    "Critical Minerals",
+    "Direct Air Capture",
+    "Energy Storage",
+    "Geothermal",
+    "Hydraulic Fracturing",
+    "Hydro",
+    "Hydrogen",
+    "Innovation",
+    "Natural Gas",
+    "Nuclear",
+    "Policy",
+    "Renewables",
+    "Permitting",
+    "NEPA",
+    "IRA",
+    "Transmission",
+    "Grid Reliability",
+    "Supply Chains",
+    "LNG",
+    "SMR",
+    "Fusion",
+    "Clean Energy",
+    "Decarbonization",
+    "DOE"
+  ]
+}

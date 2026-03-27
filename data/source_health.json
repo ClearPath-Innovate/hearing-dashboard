@@ -1,0 +1,230 @@
+{
+  "Congress.gov API": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.858623+00:00",
+    "error": "house: HTTPSConnectionPool(host='api.congress.gov', port=443): Max retries exceeded with url: /v3/committee; senate: HTTPSConnectionPool(host='api.congress.gov', port=443): Max retries exceeded with url: /v3/committee; ",
+    "meetings_found": 0
+  },
+  "Congress.gov weekly (2026-03-23)": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.866128+00:00",
+    "url": "https://www.congress.gov/committee-schedule/weekly/2026/03/23",
+    "error": "HTTPSConnectionPool(host='www.congress.gov', port=443): Max retries exceeded with url: /committee-schedule/weekly/2026/03/23 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Congress.gov weekly (2026-03-30)": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.866956+00:00",
+    "url": "https://www.congress.gov/committee-schedule/weekly/2026/03/30",
+    "error": "HTTPSConnectionPool(host='www.congress.gov', port=443): Max retries exceeded with url: /committee-schedule/weekly/2026/03/30 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Congress.gov weekly (2026-04-06)": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.867707+00:00",
+    "url": "https://www.congress.gov/committee-schedule/weekly/2026/04/06",
+    "error": "HTTPSConnectionPool(host='www.congress.gov', port=443): Max retries exceeded with url: /committee-schedule/weekly/2026/04/06 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Congress.gov weekly (2026-04-13)": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.868967+00:00",
+    "url": "https://www.congress.gov/committee-schedule/weekly/2026/04/13",
+    "error": "HTTPSConnectionPool(host='www.congress.gov', port=443): Max retries exceeded with url: /committee-schedule/weekly/2026/04/13 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Energy & Commerce": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.869673+00:00",
+    "url": "https://energycommerce.house.gov/committee-activity/hearings",
+    "error": "HTTPSConnectionPool(host='energycommerce.house.gov', port=443): Max retries exceeded with url: /committee-activity/hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Natural Resources": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.871395+00:00",
+    "url": "https://naturalresources.house.gov/calendar/",
+    "error": "HTTPSConnectionPool(host='naturalresources.house.gov', port=443): Max retries exceeded with url: /calendar/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Transportation & Infrastructure": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.872076+00:00",
+    "url": "https://transportation.house.gov/calendar/",
+    "error": "HTTPSConnectionPool(host='transportation.house.gov', port=443): Max retries exceeded with url: /calendar/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Science, Space, & Technology": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.873395+00:00",
+    "url": "https://science.house.gov/hearings",
+    "error": "HTTPSConnectionPool(host='science.house.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Ways & Means": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.874028+00:00",
+    "url": "https://waysandmeans.house.gov/hearings/",
+    "error": "HTTPSConnectionPool(host='waysandmeans.house.gov', port=443): Max retries exceeded with url: /hearings/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Energy & Natural Resources": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.875142+00:00",
+    "url": "https://www.energy.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.energy.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Environment & Public Works": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.875792+00:00",
+    "url": "https://www.epw.senate.gov/public/index.cfm/hearings",
+    "error": "HTTPSConnectionPool(host='www.epw.senate.gov', port=443): Max retries exceeded with url: /public/index.cfm/hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Commerce, Science, & Transportation": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.876789+00:00",
+    "url": "https://www.commerce.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.commerce.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Agriculture, Nutrition, & Forestry": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.877964+00:00",
+    "url": "https://www.agriculture.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.agriculture.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Foreign Relations": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.881000+00:00",
+    "url": "https://www.foreign.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.foreign.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Agriculture": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.881648+00:00",
+    "url": "https://agriculture.house.gov/calendar/",
+    "error": "HTTPSConnectionPool(host='agriculture.house.gov', port=443): Max retries exceeded with url: /calendar/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Appropriations": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.882266+00:00",
+    "url": "https://appropriations.house.gov/events/hearings",
+    "error": "HTTPSConnectionPool(host='appropriations.house.gov', port=443): Max retries exceeded with url: /events/hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Armed Services": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.882941+00:00",
+    "url": "https://armedservices.house.gov/hearings",
+    "error": "HTTPSConnectionPool(host='armedservices.house.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Budget": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.883800+00:00",
+    "url": "https://budget.house.gov/hearings",
+    "error": "HTTPSConnectionPool(host='budget.house.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Financial Services": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.884684+00:00",
+    "url": "https://financialservices.house.gov/calendar/?EventTypeID=577",
+    "error": "HTTPSConnectionPool(host='financialservices.house.gov', port=443): Max retries exceeded with url: /calendar/?EventTypeID=577 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Foreign Affairs": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.887115+00:00",
+    "url": "https://foreignaffairs.house.gov/hearings",
+    "error": "HTTPSConnectionPool(host='foreignaffairs.house.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Homeland Security": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.888501+00:00",
+    "url": "https://homeland.house.gov/hearings/",
+    "error": "HTTPSConnectionPool(host='homeland.house.gov', port=443): Max retries exceeded with url: /hearings/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Judiciary": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.889158+00:00",
+    "url": "https://judiciary.house.gov/committee-activity/hearings",
+    "error": "HTTPSConnectionPool(host='judiciary.house.gov', port=443): Max retries exceeded with url: /committee-activity/hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Oversight & Accountability": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.889855+00:00",
+    "url": "https://oversight.house.gov/hearings",
+    "error": "HTTPSConnectionPool(host='oversight.house.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Veterans' Affairs": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.890494+00:00",
+    "url": "https://veterans.house.gov/calendar/",
+    "error": "HTTPSConnectionPool(host='veterans.house.gov', port=443): Max retries exceeded with url: /calendar/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Education & the Workforce": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.891072+00:00",
+    "url": "https://edworkforce.house.gov/hearings/",
+    "error": "HTTPSConnectionPool(host='edworkforce.house.gov', port=443): Max retries exceeded with url: /hearings/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "House Small Business": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.891912+00:00",
+    "url": "https://smallbusiness.house.gov/hearings/",
+    "error": "HTTPSConnectionPool(host='smallbusiness.house.gov', port=443): Max retries exceeded with url: /hearings/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Appropriations": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.893052+00:00",
+    "url": "https://www.appropriations.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.appropriations.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Armed Services": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.894165+00:00",
+    "url": "https://www.armed-services.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.armed-services.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Banking, Housing, & Urban Affairs": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.894995+00:00",
+    "url": "https://www.banking.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.banking.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Budget": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.895575+00:00",
+    "url": "https://www.budget.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.budget.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Finance": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.896439+00:00",
+    "url": "https://www.finance.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.finance.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate HELP": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.897730+00:00",
+    "url": "https://www.help.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.help.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Homeland Security & Governmental Affairs": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.898618+00:00",
+    "url": "https://www.hsgac.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.hsgac.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Judiciary": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.899299+00:00",
+    "url": "https://www.judiciary.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.judiciary.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Veterans' Affairs": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.900060+00:00",
+    "url": "https://www.veterans.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.veterans.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Small Business & Entrepreneurship": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.900628+00:00",
+    "url": "https://www.sbc.senate.gov/public/index.cfm/hearings",
+    "error": "HTTPSConnectionPool(host='www.sbc.senate.gov', port=443): Max retries exceeded with url: /public/index.cfm/hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "Senate Intelligence": {
+    "status": "failed",
+    "last_checked_utc": "2026-03-24T03:35:15.901238+00:00",
+    "url": "https://www.intelligence.senate.gov/hearings",
+    "error": "HTTPSConnectionPool(host='www.intelligence.senate.gov', port=443): Max retries exceeded with url: /hearings (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  }
+}

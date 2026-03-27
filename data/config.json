@@ -1,0 +1,10 @@
+{
+  "congress_api_key": "xTudKgUzcl65ZffbLrzceSntZFTxkwIWFXRuq5yU",
+  "govinfo_api_key": "DEMO_KEY",
+  "digest": {
+    "gmail_user":         "ai@clearpath.org",
+    "gmail_app_password": "qtqo fdaf ufwb atky",
+    "from_name":          "ClearPath Hearings Dashboard",
+    "to_emails": ["dubrule@clearpath.org"]
+  }
+}
