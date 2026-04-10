@@ -278,14 +278,22 @@ def send_assignment_email(assignee_name: str, assignee_email: str, hearing: dict
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
 
-    _real_cfg   = json.loads((DATA_DIR / "config.json").read_text()) if (DATA_DIR / "config.json").exists() else {}
-    digest_cfg  = _real_cfg.get("digest", {})
-    gmail_user  = digest_cfg.get("gmail_user", "").strip()
-    app_pw      = digest_cfg.get("gmail_app_password", "").strip()
-    from_name   = digest_cfg.get("from_name", "ClearPath Hearings Dashboard")
+    # Prefer st.secrets (Streamlit Cloud), fall back to config.json (local)
+    try:
+        gmail_user = st.secrets.get("GMAIL_USER", "").strip()
+        app_pw     = st.secrets.get("GMAIL_APP_PASSWORD", "").strip()
+        from_name  = st.secrets.get("FROM_NAME", "ClearPath Hearings Dashboard").strip()
+    except Exception:
+        gmail_user = app_pw = from_name = ""
+    if not gmail_user or not app_pw:
+        _real_cfg  = json.loads((DATA_DIR / "config.json").read_text()) if (DATA_DIR / "config.json").exists() else {}
+        digest_cfg = _real_cfg.get("digest", {})
+        gmail_user = digest_cfg.get("gmail_user", "").strip()
+        app_pw     = digest_cfg.get("gmail_app_password", "").strip()
+        from_name  = digest_cfg.get("from_name", "ClearPath Hearings Dashboard")
 
     if not gmail_user or not app_pw:
-        return False, "Gmail credentials not set in data/config.json"
+        return False, "Gmail credentials not set — add GMAIL_USER and GMAIL_APP_PASSWORD to Streamlit secrets"
 
     d        = hearing.get("date")
     date_str = d.strftime("%A, %B %-d, %Y") if isinstance(d, date) else "TBD"
