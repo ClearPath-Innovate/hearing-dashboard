@@ -1,7 +1,7 @@
 name: Friday Hearings Digest
 
 on:
-  # Every Friday at 3:00 PM ET (19:00 UTC — accounts for ET = UTC-4 in summer)
+  # Every Friday at 3:00 PM ET (19:00 UTC — ET = UTC-4 in summer)
   schedule:
     - cron: "0 19 * * 5"
 
@@ -28,21 +28,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ── Pull latest hearings data from the persistent store ──────────────
-      # hearings_seed.json is gitignored (it's local). The job needs data to
-      # work with. Two options (uncomment the one you use):
-      #
-      # Option A — S3 bucket (recommended for production):
-      # - name: Download hearings data from S3
-      #   env:
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #   run: aws s3 cp s3://your-bucket/hearings_seed.json data/hearings_seed.json
-      #
-      # Option B — commit a fresh copy before each push (simplest for now):
-      # If you add hearings_seed.json to git tracking (remove from .gitignore),
-      # it will be checked out automatically above.
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -52,22 +37,47 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Write config.json using Python so quoting/JSON is always valid
       - name: Write config.json from secrets
+        env:
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          CONGRESS_API_KEY:   ${{ secrets.CONGRESS_API_KEY }}
+          GOVINFO_API_KEY:    ${{ secrets.GOVINFO_API_KEY }}
+          DASHBOARD_URL:      ${{ secrets.DASHBOARD_URL }}
+          DIGEST_TO_EMAILS:   ${{ secrets.DIGEST_TO_EMAILS }}
         run: |
-          mkdir -p data
-          cat > data/config.json << 'EOF'
-          {
-            "congress_api_key": "${{ secrets.CONGRESS_API_KEY }}",
-            "govinfo_api_key":  "${{ secrets.GOVINFO_API_KEY }}",
-            "dashboard_url":    "${{ secrets.DASHBOARD_URL }}",
-            "digest": {
-              "gmail_user":         "${{ secrets.GMAIL_USER }}",
-              "gmail_app_password": "${{ secrets.GMAIL_APP_PASSWORD }}",
-              "from_name":          "ClearPath Hearings Dashboard",
-              "to_emails":          ${{ secrets.DIGEST_TO_EMAILS }}
-            }
+          python - <<'PYEOF'
+          import json, os
+          to_emails_raw = os.environ.get("DIGEST_TO_EMAILS", "[]").strip()
+          try:
+              to_emails = json.loads(to_emails_raw)
+          except Exception:
+              # fallback: treat as comma-separated plain emails
+              to_emails = [e.strip() for e in to_emails_raw.split(",") if e.strip()]
+          cfg = {
+              "congress_api_key": os.environ.get("CONGRESS_API_KEY", ""),
+              "govinfo_api_key":  os.environ.get("GOVINFO_API_KEY", "DEMO_KEY"),
+              "dashboard_url":    os.environ.get("DASHBOARD_URL", ""),
+              "digest": {
+                  "gmail_user":         os.environ.get("GMAIL_USER", ""),
+                  "gmail_app_password": os.environ.get("GMAIL_APP_PASSWORD", ""),
+                  "from_name":          "ClearPath Hearings Dashboard",
+                  "to_emails":          to_emails,
+              }
           }
-          EOF
+          import pathlib
+          pathlib.Path("data").mkdir(exist_ok=True)
+          pathlib.Path("data/config.json").write_text(json.dumps(cfg, indent=2))
+          print(f"config.json written — gmail_user={cfg['digest']['gmail_user']!r}, recipients={to_emails}")
+          PYEOF
+
+      # Fetch fresh hearing data from Congress.gov so the digest has real content
+      - name: Fetch latest hearings
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python fetch_all_hearings.py
+        continue-on-error: true   # don't fail the whole job if fetch has issues
 
       - name: Run digest
         env:
