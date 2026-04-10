@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import date, datetime, timedelta
 from collections import defaultdict
+import html
 import textwrap
 import json
 import csv
@@ -58,13 +59,17 @@ def compute_hearing_id(h: dict) -> str:
     return hashlib.sha1(base.encode("utf-8")).hexdigest()[:12]
 
 def strip_html(text: str) -> str:
-    """Remove HTML tags and decode common entities. Returns empty string for generic fallback links."""
+    """Remove HTML tags, decode entities, return plain text. Empty string for generic fallback links."""
+    import html as _html
     if not text:
         return ""
-    clean = re.sub(r'<[^>]+>', '', text).strip()
+    # Decode HTML entities first (e.g. &amp; &nbsp; &lt;)
+    clean = _html.unescape(text)
+    # Remove all HTML tags
+    clean = re.sub(r'<[^>]+>', ' ', clean)
     # Collapse whitespace
     clean = re.sub(r'\s+', ' ', clean).strip()
-    # If the only content is a generic search/link label, treat as empty
+    # Drop generic placeholder strings that congress.gov sometimes returns
     if clean.lower() in {"search congress.gov", "search", "view details", ""}:
         return ""
     return clean
@@ -249,6 +254,91 @@ def update_hearing_field(hearing_id: str, field: str, value):
 config = load_config()
 CLEARPATH_FOCUS = set(config.get("house", []) + config.get("senate", []))
 TOPIC_KEYWORDS = [k.lower() for k in config.get("topic_keywords", [])]
+
+# ======================
+# Team config
+# ======================
+TEAM_PATH = DATA_DIR / "team.json"
+
+def load_team():
+    if TEAM_PATH.exists():
+        return json.loads(TEAM_PATH.read_text())
+    return {"members": [], "actions": ["Monitoring", "Attending", "Submitting Testimony", "No Action Needed"], "statuses": ["Not Started", "In Progress", "Done"]}
+
+team_cfg     = load_team()
+TEAM_MEMBERS = team_cfg.get("members", [])
+TEAM_NAMES   = ["(unassigned)"] + [m["name"] for m in TEAM_MEMBERS]
+TEAM_EMAIL   = {m["name"]: m["email"] for m in TEAM_MEMBERS}
+ACTIONS      = team_cfg.get("actions", [])
+STATUSES     = team_cfg.get("statuses", [])
+
+def send_assignment_email(assignee_name: str, assignee_email: str, hearing: dict):
+    """Send a notification email when a hearing is assigned to someone."""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    _real_cfg   = json.loads((DATA_DIR / "config.json").read_text()) if (DATA_DIR / "config.json").exists() else {}
+    digest_cfg  = _real_cfg.get("digest", {})
+    gmail_user  = digest_cfg.get("gmail_user", "").strip()
+    app_pw      = digest_cfg.get("gmail_app_password", "").strip()
+    from_name   = digest_cfg.get("from_name", "ClearPath Hearings Dashboard")
+
+    if not gmail_user or not app_pw:
+        return False, "Gmail credentials not set in data/config.json"
+
+    d        = hearing.get("date")
+    date_str = d.strftime("%A, %B %-d, %Y") if isinstance(d, date) else "TBD"
+    topic    = hearing.get("topic", "")
+    short    = topic[:120].rsplit(" ", 1)[0] + "…" if len(topic) > 120 else topic
+    action   = hearing.get("clearpath_action", "Monitoring")
+    url      = hearing.get("url", "")
+    committee = hearing.get("committee", "")
+
+    link_html = f'<a href="{url}" style="color:#193D69; font-weight:600;">View Hearing Details →</a>' if url else ""
+
+    html = f"""<!DOCTYPE html>
+<html><body style="font-family:-apple-system,sans-serif; color:#1F2937; margin:0; padding:0; background:#F4F6F9;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;">
+<tr><td align="center">
+<table width="600" style="background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+  <tr><td style="background:#193D69; padding:22px 30px;">
+    <div style="color:white; font-size:20px; font-weight:700;">You've been assigned a hearing</div>
+    <div style="color:rgba(255,255,255,0.75); font-size:13px; margin-top:4px;">ClearPath Hearings Dashboard</div>
+  </td></tr>
+  <tr><td style="padding:28px 30px;">
+    <p style="margin:0 0 16px;">Hi <strong>{assignee_name}</strong>,</p>
+    <p style="margin:0 0 20px;">You've been assigned to track the following hearing. Your action: <strong>{action}</strong>.</p>
+    <div style="background:#F4F6F9; border-left:5px solid #193D69; border-radius:0 8px 8px 0; padding:16px 20px; margin-bottom:20px;">
+      <div style="font-size:12px; font-weight:700; color:#193D69; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;">{committee}</div>
+      <div style="font-size:16px; font-weight:700; margin-bottom:8px;">{short}</div>
+      <div style="font-size:13px; color:#6B7280;">📅 {date_str} &nbsp;|&nbsp; 🕐 {hearing.get("time","TBD")} &nbsp;|&nbsp; 📍 {hearing.get("location","TBD")}</div>
+    </div>
+    {f'<p>{link_html}</p>' if link_html else ""}
+    <p style="margin-top:20px; font-size:13px; color:#6B7280;">
+      This assignment was made in the ClearPath Hearings Dashboard. Reply to this email if you have questions.
+    </p>
+  </td></tr>
+  <tr><td style="background:#E8ECF0; padding:14px 30px; font-size:12px; color:#6B7280;">
+    ClearPath Hearings Dashboard &nbsp;·&nbsp; Sent automatically on assignment
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+    try:
+        msg             = MIMEMultipart("alternative")
+        msg["Subject"]  = f"Assigned: {short[:60]}{'…' if len(short) > 60 else ''} ({date_str})"
+        msg["From"]     = f"{from_name} <{gmail_user}>"
+        msg["To"]       = assignee_email
+        msg.attach(MIMEText(html, "html"))
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(gmail_user, app_pw)
+            server.sendmail(gmail_user, [assignee_email], msg.as_string())
+        return True, None
+    except Exception as e:
+        return False, str(e)
 hearings = load_hearings()
 if not hearings:
     st.warning("No hearings found in data/hearings_seed.json yet. Add one from the sidebar.")
@@ -729,6 +819,25 @@ def build_ics(hearing: dict) -> str:
         "END:VCALENDAR",
     ])
 
+def build_gcal_url(hearing: dict) -> str:
+    """Build a Google Calendar 'add event' URL (no auth required)."""
+    from urllib.parse import urlencode
+    dt = hearing["date"].strftime("%Y%m%d")
+    title = f'{hearing["committee"]}: {hearing["topic"]}'
+    desc  = strip_html(hearing.get("why") or "")
+    link  = hearing.get("committee_url") or hearing.get("url") or ""
+    if link:
+        desc = f"{desc}\n\n{link}".strip()
+    location = hearing.get("location", "") or ""
+    params = {
+        "action":   "TEMPLATE",
+        "text":     title,
+        "dates":    f"{dt}/{dt}",
+        "details":  desc,
+        "location": location,
+    }
+    return "https://calendar.google.com/calendar/render?" + urlencode(params)
+
 def export_to_csv(hearings_list: list) -> str:
     output = StringIO()
     writer = csv.writer(output)
@@ -778,169 +887,278 @@ def render_card(hearing: dict, idx: int, tab_prefix: str = ""):
         badge_text = CP_NAVY
         badge_label = status or "Hearing"
 
-    tags_html = "".join([f"<span class='cp-chip'>{t}</span>" for t in hearing.get("tags", [])])
+    tags_html = "".join([f"<span class='cp-chip'>{html.escape(t)}</span>" for t in hearing.get("tags", [])])
 
     sources = hearing.get("sources", []) or []
     docs = hearing.get("docs", []) or []
     witnesses = hearing.get("witnesses", ["TBD"]) or ["TBD"]
     bills = hearing.get("bills", []) or []
-    location = hearing.get("location", "TBD")
+    location = html.escape(hearing.get("location", "TBD") or "TBD")
 
-    card_html = f"""
-    <div class="cp-card" style="border-left: 7px solid {border_color};">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px;">
-        <div>
-          <div style="font-size:14px; font-weight:700; color:{CP_NAVY}; margin-bottom:4px;">
-            {hearing["committee"]}
-          </div>
-          <div style="font-size:16px; font-weight:700; color:{TEXT_DARK};">
-            {hearing["topic"]}
-          </div>
-          <div class="cp-muted" style="margin-top:4px;">
-            <strong>Date:</strong> {hearing["date"].strftime("%b %d, %Y")} &nbsp; | &nbsp;
-            <strong>Time:</strong> {hearing.get("time","TBD")} &nbsp; | &nbsp;
-            <strong>Location:</strong> {location}
-          </div>
-        </div>
-        <span class="cp-badge" style="background:{badge_bg}; color:{badge_text};">
-          {badge_label}
-        </span>
-      </div>
+    # Smart title: truncate long topics, show full text in expander
+    raw_topic   = hearing.get("topic", "")
+    TITLE_LIMIT = 120
+    is_long     = len(raw_topic) > TITLE_LIMIT
+    short_title = html.escape(raw_topic[:TITLE_LIMIT].rsplit(" ", 1)[0] + "…" if is_long else raw_topic)
+    full_topic_html = (
+        f'<div style="margin-top:8px; font-size:12px; color:{CP_GREY_DARK}; '
+        f'background:#F9FAFB; padding:8px 12px; border-radius:6px; line-height:1.5;">'
+        f'<strong>Full title:</strong> {html.escape(raw_topic)}</div>'
+    ) if is_long else ""
 
-      {f'<div style="margin-top:10px; color:{TEXT_DARK};"><strong>Why it matters:</strong> {strip_html(hearing.get("why",""))}</div>' if strip_html(hearing.get("why","")) else ""}
+    committee_esc = html.escape(hearing.get("committee", ""))
+    why_text = strip_html(hearing.get("why", ""))
+    why_html = (
+        f'<div style="margin-top:10px; color:{TEXT_DARK};">'
+        f'<strong>Why it matters:</strong> {html.escape(why_text)}</div>'
+    ) if why_text else ""
 
-      <div style="margin-top:10px;">
-        {tags_html}
-      </div>
+    witnesses_esc = html.escape(", ".join(witnesses))
+    bills_esc = html.escape(", ".join(bills)) if bills else ""
 
-      <div style="margin-top:10px;" class="cp-muted">
-        <strong>Witnesses:</strong> {", ".join(witnesses)}
-        {"<br><strong>Bills:</strong> " + ", ".join(bills) if bills else ""}
-      </div>
+    # Best link: committee website > hearing page > congress.gov
+    primary_url = hearing.get("committee_url") or hearing.get("url") or ""
+    congress_url = hearing.get("congress_url", "") or ""
+    transcript_url = hearing.get("transcript_url", "") or ""
+    primary_link = (
+        f'<a href="{primary_url}" target="_blank" style="color:{CP_NAVY}; font-weight:700;">View on committee website →</a>'
+        if primary_url else ""
+    )
+    congress_link = (
+        f'<a href="{congress_url}" target="_blank" style="color:{CP_GREY_DARK}; font-weight:500;">Congress.gov record</a>'
+        if congress_url and congress_url != primary_url else ""
+    )
+    transcript_link = (
+        f'<a href="{transcript_url}" target="_blank" style="color:#28a745; font-weight:600;">📄 Transcript available</a>'
+        if transcript_url else ""
+    )
 
-      <div style="margin-top:12px; display: flex; gap: 16px; flex-wrap: wrap; align-items:center;">
-        {f'<a href="{hearing.get("url","")}" target="_blank" style="color:{CP_NAVY}; font-weight:700;">View hearing details →</a>' if hearing.get("url") else ""}
-        {f'<a href="{hearing.get("congress_url","")}" target="_blank" style="color:{CP_GREY_DARK}; font-weight:500;">Congress.gov record</a>' if hearing.get("congress_url") and hearing.get("congress_url") != hearing.get("url") else ""}
-        {f'<a href="{hearing.get("transcript_url","")}" target="_blank" style="color:#28a745; font-weight:600;">📄 Transcript available</a>' if hearing.get("transcript_url") else ""}
-      </div>
-    </div>
-    """
-    st.markdown(textwrap.dedent(card_html), unsafe_allow_html=True)
+    card_html = (
+        f'<div class="cp-card" style="border-left: 7px solid {border_color};">'
+        f'<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px;">'
+        f'<div style="flex:1; min-width:0;">'
+        f'<div style="font-size:14px; font-weight:700; color:{CP_NAVY}; margin-bottom:4px;">{committee_esc}</div>'
+        f'<div style="font-size:16px; font-weight:700; color:{TEXT_DARK}; line-height:1.35;">{short_title}</div>'
+        f'{full_topic_html}'
+        f'<div class="cp-muted" style="margin-top:6px;">'
+        f'<strong>Date:</strong> {hearing["date"].strftime("%b %d, %Y")} &nbsp;|&nbsp; '
+        f'<strong>Time:</strong> {html.escape(hearing.get("time","TBD") or "TBD")} &nbsp;|&nbsp; '
+        f'<strong>Location:</strong> {location}'
+        f'</div>'
+        f'</div>'
+        f'<span class="cp-badge" style="background:{badge_bg}; color:{badge_text}; flex-shrink:0;">{html.escape(badge_label)}</span>'
+        f'</div>'
+        f'{why_html}'
+        f'<div style="margin-top:10px;">{tags_html}</div>'
+        f'<div style="margin-top:10px;" class="cp-muted">'
+        f'<strong>Witnesses:</strong> {witnesses_esc}'
+        f'{("<br><strong>Bills:</strong> " + bills_esc) if bills_esc else ""}'
+        f'</div>'
+        f'<div style="margin-top:12px; display:flex; gap:16px; flex-wrap:wrap; align-items:center;">'
+        f'{primary_link}{congress_link}{transcript_link}'
+        f'</div>'
+        f'</div>'
+    )
+    st.markdown(card_html, unsafe_allow_html=True)
 
-    with st.expander("Details, sources, and documents"):
-        colA, colB = st.columns([2, 1])
+    hearing_id = hearing.get("hearing_id", "")
 
-        with colA:
-            # --- Transcript links (prominent) ---
-            transcript_docs = [d for d in docs if d.get("type") in ("transcript", "transcript_html")]
-            other_docs = [d for d in docs if d.get("type") not in ("transcript", "transcript_html")]
+    with st.expander("Assign · Notes · Docs"):
 
-            if transcript_docs:
-                st.markdown("**📄 Transcript**")
-                for d in transcript_docs:
-                    st.markdown(f"- [{d['label']}]({d['url']})")
+        # ── 1. ASSIGNMENT (top, most important) ──────────────────────────
+        cur_assignee       = hearing.get("assigned_to", "(unassigned)")
+        cur_assignee_email = hearing.get("assigned_email", "")
+        cur_action         = hearing.get("clearpath_action", ACTIONS[0] if ACTIONS else "Monitoring")
+        cur_status         = hearing.get("action_status", STATUSES[0] if STATUSES else "Not Started")
 
-            if sources:
-                st.markdown("**Sources**")
-                for s in sources:
-                    st.markdown(f"- [{s['label']}]({s['url']})")
-            if other_docs:
-                st.markdown("**Documents**")
-                for d in other_docs:
-                    st.markdown(f"- [{d['label']}]({d['url']})")
-            if hearing.get("stream"):
-                st.markdown(f"**Livestream:** {hearing['stream']}")
-
-        # --- Committee Members ---
-        members = hearing.get("committee_members") or []
-        if members:
-            st.markdown("---")
-            st.markdown("**🏛️ Committee Members**")
-
-            # Separate leadership from regular members
-            leaders = [m for m in members if m.get("is_leadership") or m.get("role", "").lower() in ("chair", "ranking member", "vice chair")]
-            regulars = [m for m in members if m not in leaders]
-
-            # Color by party
-            def party_color(party: str) -> str:
-                p = (party or "").upper()
-                if p == "R":
-                    return "#CC3333"
-                elif p == "D":
-                    return "#1155AA"
-                return CP_GREY_DARK
-
-            def party_label(party: str) -> str:
-                p = (party or "").upper()
-                if p == "R": return "R"
-                if p == "D": return "D"
-                return party or "?"
-
-            if leaders:
-                leader_html = ""
-                for m in leaders:
-                    pc = party_color(m.get("party", ""))
-                    pl = party_label(m.get("party", ""))
-                    role = m.get("role", "")
-                    name = m.get("name", "")
-                    state = m.get("state", "")
-                    leader_html += f"""
-                    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;margin-bottom:6px;">
-                      <span style="background:{pc};color:white;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;">{pl}</span>
-                      <strong>{name}</strong>
-                      {f'<span style="color:{CP_GREY_DARK};font-size:12px;">({state}) — {role}</span>' if role else f'<span style="color:{CP_GREY_DARK};font-size:12px;">({state})</span>'}
-                    </span>"""
-                st.markdown(leader_html, unsafe_allow_html=True)
-
-            if regulars:
-                # Show members in a compact two-column grid
-                cols = st.columns(2)
-                for i, m in enumerate(regulars[:20]):  # cap at 20 for readability
-                    pc = party_color(m.get("party", ""))
-                    pl = party_label(m.get("party", ""))
-                    name = m.get("name", "")
-                    state = m.get("state", "")
-                    with cols[i % 2]:
-                        st.markdown(
-                            f'<span style="background:{pc};color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;">{pl}</span> '
-                            f'{name} <span style="color:{CP_GREY_DARK};font-size:12px;">({state})</span>',
-                            unsafe_allow_html=True
-                        )
-                if len(regulars) > 20:
-                    st.caption(f"+ {len(regulars) - 20} more members")
-
-        with colB:
-            ics = build_ics(hearing)
-            st.download_button(
-                label="Add to calendar (.ics)",
-                data=ics,
-                file_name=f"clearpath_hearing_{hearing['date'].strftime('%Y%m%d')}_{idx}.ics",
-                mime="text/calendar",
-                use_container_width=True,
-                key=f"ics_{tab_prefix}_{idx}"
+        # Compact status pill if already assigned
+        if cur_assignee and cur_assignee != "(unassigned)":
+            status_colors = {"Not Started": "#6B7280", "In Progress": "#2563EB", "Done": "#16A34A"}
+            sc = status_colors.get(cur_status, CP_GREY_DARK)
+            email_display = f' <span style="color:{CP_GREY_DARK}; font-weight:400;">({html.escape(cur_assignee_email)})</span>' if cur_assignee_email else ""
+            st.markdown(
+                f'<div style="background:#F0F4FA; border-radius:6px; padding:7px 12px; margin-bottom:8px; '
+                f'font-size:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
+                f'<span style="font-weight:600; color:{CP_NAVY};">👤 {html.escape(cur_assignee)}{email_display}</span>'
+                f'<span style="color:#D1D5DB;">|</span>'
+                f'<span style="color:{CP_GREY_DARK};">{html.escape(cur_action)}</span>'
+                f'<span style="color:#D1D5DB;">|</span>'
+                f'<span style="font-weight:600; color:{sc};">{html.escape(cur_status)}</span>'
+                f'</div>',
+                unsafe_allow_html=True
             )
 
-        # Notes section
-        st.markdown("---")
-        st.markdown("**📝 Notes**")
-        hearing_id = hearing.get("hearing_id", "")
-        notes_key = f"notes_{tab_prefix}_{hearing_id}"
-        current_notes = hearing.get("notes", "")
+        cur_assignee_email = hearing.get("assigned_email", "")
 
+        with st.form(key=f"assign_form_{tab_prefix}_{hearing_id}"):
+            name_col, email_col = st.columns(2)
+            with name_col:
+                new_assignee = st.text_input(
+                    "Name",
+                    value=cur_assignee if cur_assignee != "(unassigned)" else "",
+                    placeholder="e.g. Jake, Sarah…",
+                    label_visibility="collapsed"
+                )
+            with email_col:
+                new_assignee_email = st.text_input(
+                    "Email",
+                    value=cur_assignee_email,
+                    placeholder="their@email.com",
+                    label_visibility="collapsed"
+                )
+            action_col, status_col = st.columns(2)
+            with action_col:
+                new_action = st.selectbox(
+                    "ClearPath action",
+                    options=ACTIONS,
+                    index=ACTIONS.index(cur_action) if cur_action in ACTIONS else 0,
+                    label_visibility="collapsed"
+                )
+            with status_col:
+                new_status = st.selectbox(
+                    "Status",
+                    options=STATUSES,
+                    index=STATUSES.index(cur_status) if cur_status in STATUSES else 0,
+                    label_visibility="collapsed"
+                )
+            save_col, notify_col = st.columns(2)
+            with save_col:
+                do_save   = st.form_submit_button("Save", use_container_width=True)
+            with notify_col:
+                do_notify = st.form_submit_button("Save & Notify 📧", use_container_width=True, type="primary")
+
+        if do_save or do_notify:
+            assignee_name  = new_assignee.strip() or "(unassigned)"
+            assignee_email = new_assignee_email.strip()
+            print(f"[ASSIGN] name={assignee_name!r} email={assignee_email!r} notify={do_notify}")
+            if hearing_id:
+                update_hearing_field(hearing_id, "assigned_to",      assignee_name)
+                update_hearing_field(hearing_id, "assigned_email",   assignee_email)
+                update_hearing_field(hearing_id, "clearpath_action", new_action)
+                update_hearing_field(hearing_id, "action_status",    new_status)
+            if do_notify:
+                if "@" in assignee_email:
+                    hearing_for_email = {**hearing, "clearpath_action": new_action}
+                    print(f"[EMAIL] attempting send to {assignee_email}")
+                    sent, err = send_assignment_email(assignee_name, assignee_email, hearing_for_email)
+                    print(f"[EMAIL] sent={sent} err={err}")
+                    if sent:
+                        st.success(f"📧 Sent to {assignee_email}")
+                    else:
+                        st.error(f"Email failed: {err}")
+                else:
+                    st.warning("Enter an email address to notify")
+            else:
+                st.success("Saved!")
+
+        # ── 2. NOTES ─────────────────────────────────────────────────────
+        st.markdown("<div style='margin-top:10px;'></div>", unsafe_allow_html=True)
+        notes_key    = f"notes_{tab_prefix}_{hearing_id}"
+        current_notes = hearing.get("notes", "")
         new_notes = st.text_area(
-            "Add internal notes about this hearing",
+            "Internal notes",
             value=current_notes,
             key=notes_key,
-            height=100,
+            height=70,
+            placeholder="Add notes, strategy, contacts…",
             label_visibility="collapsed"
         )
-
         if st.button("Save notes", key=f"save_notes_{tab_prefix}_{hearing_id}"):
             if hearing_id:
                 update_hearing_field(hearing_id, "notes", new_notes)
                 st.success("Notes saved!")
                 st.rerun()
 
+        # ── 3. CALENDAR / DOCS (bottom) ───────────────────────────────────
+        st.markdown("<div style='margin-top:10px; border-top:1px solid #E5E7EB; padding-top:10px;'></div>", unsafe_allow_html=True)
+
+        cal_col, doc_col = st.columns([1, 2])
+        with cal_col:
+            ics = build_ics(hearing)
+            st.download_button(
+                label="⬇ .ics",
+                data=ics,
+                file_name=f"clearpath_hearing_{hearing['date'].strftime('%Y%m%d')}_{idx}.ics",
+                mime="text/calendar",
+                use_container_width=True,
+                key=f"ics_{tab_prefix}_{idx}"
+            )
+            gcal_url = build_gcal_url(hearing)
+            st.link_button("📅 Google Calendar", gcal_url, use_container_width=True)
+
+        with doc_col:
+            # --- Transcript links (prominent) ---
+            transcript_docs = [d for d in docs if d.get("type") in ("transcript", "transcript_html")]
+            other_docs = [d for d in docs if d.get("type") not in ("transcript", "transcript_html")]
+            meaningful_sources = [
+                s for s in sources
+                if s.get("url") and "congress.gov" not in s.get("label", "").lower()
+                and "api" not in s.get("label", "").lower()
+            ]
+
+            if transcript_docs:
+                for d in transcript_docs:
+                    st.markdown(f"📄 [{d['label']}]({d['url']})")
+            if meaningful_sources:
+                for s in meaningful_sources:
+                    st.markdown(f"🔗 [{s['label']}]({s['url']})")
+            if other_docs:
+                for d in other_docs:
+                    st.markdown(f"📎 [{d['label']}]({d['url']})")
+            if hearing.get("stream"):
+                st.markdown(f"📺 [Livestream]({hearing['stream']})")
+
+        # --- Committee Members (collapsed inside, low priority) ---
+        members = hearing.get("committee_members") or []
+        if members:
+            with st.expander(f"🏛️ Committee members ({len(members)})", expanded=False):
+                leaders = [m for m in members if m.get("is_leadership") or m.get("role", "").lower() in ("chair", "ranking member", "vice chair")]
+                regulars = [m for m in members if m not in leaders]
+
+                def party_color(party: str) -> str:
+                    p = (party or "").upper()
+                    if p == "R": return "#CC3333"
+                    if p == "D": return "#1155AA"
+                    return CP_GREY_DARK
+
+                def party_label(party: str) -> str:
+                    p = (party or "").upper()
+                    if p == "R": return "R"
+                    if p == "D": return "D"
+                    return party or "?"
+
+                if leaders:
+                    leader_html = ""
+                    for m in leaders:
+                        pc = party_color(m.get("party", ""))
+                        pl = party_label(m.get("party", ""))
+                        role = m.get("role", "")
+                        name = m.get("name", "")
+                        state = m.get("state", "")
+                        leader_html += (
+                            f'<span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;margin-bottom:6px;">'
+                            f'<span style="background:{pc};color:white;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;">{pl}</span>'
+                            f'<strong>{html.escape(name)}</strong>'
+                            + (f'<span style="color:{CP_GREY_DARK};font-size:12px;">({html.escape(state)}) — {html.escape(role)}</span>' if role else f'<span style="color:{CP_GREY_DARK};font-size:12px;">({html.escape(state)})</span>')
+                            + '</span>'
+                        )
+                    st.markdown(leader_html, unsafe_allow_html=True)
+
+                if regulars:
+                    cols = st.columns(2)
+                    for i, m in enumerate(regulars[:20]):
+                        pc = party_color(m.get("party", ""))
+                        pl = party_label(m.get("party", ""))
+                        name = m.get("name", "")
+                        state = m.get("state", "")
+                        with cols[i % 2]:
+                            st.markdown(
+                                f'<span style="background:{pc};color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;">{pl}</span> '
+                                f'{html.escape(name)} <span style="color:{CP_GREY_DARK};font-size:12px;">({html.escape(state)})</span>',
+                                unsafe_allow_html=True
+                            )
+                    if len(regulars) > 20:
+                        st.caption(f"+ {len(regulars) - 20} more members")
 
 
 # Duplicate filters section removed - using consolidated section above
@@ -1011,6 +1229,38 @@ today_list = by_date.get(selected_date, [])
 week_list = [h for h in filtered if isinstance(h.get("date"), date) and within_week(h["date"], selected_date)]
 
 # ======================
+# Out-of-Session Banner
+# ======================
+_all_week = [h for h in hearings if isinstance(h.get("date"), date) and within_week(h["date"], selected_date)]
+_is_quiet_week = len(_all_week) == 0
+
+if _is_quiet_week:
+    _next_monday = selected_date + timedelta(days=(7 - selected_date.weekday()) % 7 or 7)
+    st.markdown(
+        f"""
+        <div style="background: #FEF9EC; border: 1.5px solid #F59E0B;
+                    border-radius: 8px; padding: 12px 20px; margin-bottom: 16px;
+                    display: flex; align-items: center; gap: 14px;">
+            <span style="font-size: 22px;">🏛️</span>
+            <div style="flex: 1;">
+                <span style="font-weight: 700; color: #92400E; font-size: 14px;">
+                    Congress is in recess / no hearings this week
+                </span>
+                <span style="color: #92400E; font-size: 13px; margin-left: 8px;">
+                    — Dashboard will update automatically when new hearings are posted.
+                    Next check: <strong>{_next_monday.strftime("%b %-d")}</strong>.
+                    Run scout to check for new postings.
+                </span>
+            </div>
+            <span style="font-size: 12px; color: #92400E; white-space: nowrap; font-weight: 600;">
+                📋 Bills tab still active →
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ======================
 # KPI Row
 # ======================
 c1, c2, c3, c4 = st.columns(4)
@@ -1020,9 +1270,87 @@ c3.metric("Priority (this week)", str(sum(1 for h in week_list if is_priority_he
 c4.metric("Committees tracked", str(len(FOCUS_SET)))
 
 # ======================
+# Top 3 Priorities Box
+# ======================
+priority_week = sorted(
+    [h for h in week_list if is_priority_hearing(h)],
+    key=lambda x: (x.get("date") or date.max, parse_time_for_sort(x.get("time", "")))
+)
+
+if priority_week:
+    st.markdown(
+        f"""
+        <div style="background: linear-gradient(135deg, {CP_RED} 0%, #7a1518 100%);
+                    border-radius: 10px; padding: 20px 24px; margin: 18px 0;">
+            <div style="color: white; font-size: 13px; font-weight: 700;
+                        text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px;">
+                🔥 Top Priorities This Week
+            </div>
+            {"".join([
+                '<div style="background: rgba(255,255,255,0.12); border-radius: 7px;'
+                '            padding: 12px 16px; margin-bottom: 10px;">'
+                '<div style="color: rgba(255,255,255,0.75); font-size: 11px;'
+                '            font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;">'
+                + (h.get("date").strftime("%a %b %-d") if h.get("date") else "TBD")
+                + ' &nbsp;·&nbsp; '
+                + html.escape(h.get("committee", ""))
+                + '</div>'
+                '<div style="color: white; font-size: 14px; font-weight: 600;'
+                '            margin-top: 4px; line-height: 1.3;">'
+                + html.escape(h.get("topic", "")[:120])
+                + '</div>'
+                + "".join([
+                    f'<span style="background:rgba(255,255,255,0.2); color:white; font-size:11px; '
+                    f'padding:2px 8px; border-radius:999px; margin-right:5px; margin-top:6px; '
+                    f'display:inline-block;">{html.escape(t)}</span>'
+                    for t in h.get("tags", [])[:3]
+                ])
+                + '</div>'
+                for h in priority_week[:3]
+            ])}
+            {"" if len(priority_week) <= 3 else f'<div style="color:rgba(255,255,255,0.6); font-size:12px; margin-top:4px;">+ {len(priority_week)-3} more priority hearings this week</div>'}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+elif week_list:
+    st.markdown(
+        f"""
+        <div style="background: {CP_GREY_LIGHT}; border: 1px solid #D1D9E0;
+                    border-radius: 10px; padding: 16px 24px; margin: 18px 0;
+                    display: flex; align-items: center; gap: 14px;">
+            <div style="font-size: 28px;">📋</div>
+            <div>
+                <div style="font-weight: 600; color: {CP_NAVY};">No priority hearings this week</div>
+                <div style="font-size: 13px; color: {CP_GREY_DARK}; margin-top: 2px;">
+                    {len(week_list)} tracked committee hearing{"s" if len(week_list) != 1 else ""} scheduled —
+                    none match ClearPath priority keywords.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.markdown(
+        f"""
+        <div style="background: {CP_GREY_LIGHT}; border: 1px dashed #C0C8D0;
+                    border-radius: 10px; padding: 20px 24px; margin: 18px 0; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🏛️</div>
+            <div style="font-weight: 600; color: {CP_NAVY}; font-size: 15px;">Congress is quiet this week</div>
+            <div style="font-size: 13px; color: {CP_GREY_DARK}; margin-top: 6px;">
+                No hearings found in the dashboard for this week.
+                Run the scout to check for new postings, or adjust your date filter.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ======================
 # Tabs
 # ======================
-tab_today, tab_week, tab_past, tab_table, tab_updates = st.tabs(["📍 Selected date", "🗓️ This week", "📜 Past Hearings", "📊 Table view", "🧭 Updates"])
+tab_today, tab_week, tab_past, tab_table, tab_bills, tab_updates = st.tabs(["📍 Selected date", "🗓️ This week", "📜 Past Hearings", "📊 Table view", "📋 Bills", "🧭 Updates"])
 
 
 with tab_today:
@@ -1213,36 +1541,39 @@ python summarizer.py --list
                     summary_data = summaries.get(hearing_id, {})
                     has_summary = summary_data.get("status") == "success"
 
-                    tags_html = "".join([f"<span class='cp-chip'>{t}</span>" for t in tags])
+                    tags_html = "".join([f"<span class='cp-chip'>{html.escape(t)}</span>" for t in tags])
                     summary_badge = "✅ AI Summary" if has_summary else "📝 Pending"
                     summary_color = "#28a745" if has_summary else CP_GREY_DARK
+                    committee_esc2 = html.escape(committee)
+                    topic_esc2 = html.escape(topic)
+                    time_esc2 = html.escape(hearing.get("time", "TBD") or "TBD")
+                    loc_esc2 = html.escape(hearing.get("location", "TBD") or "TBD")
 
-                    st.markdown(f"""
-                    <div class="cp-card" style="border-left: 7px solid {CP_RED}; opacity: 0.9;">
-                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px;">
-                        <div>
-                          <div style="font-size:14px; font-weight:700; color:{CP_NAVY}; margin-bottom:4px;">
-                            {committee}
-                          </div>
-                          <div style="font-size:16px; font-weight:700; color:{TEXT_DARK};">
-                            {topic}
-                          </div>
-                          <div class="cp-muted" style="margin-top:4px;">
-                            <strong>Time:</strong> {hearing.get("time","TBD")} &nbsp; | &nbsp;
-                            <strong>Location:</strong> {hearing.get("location", "TBD")}
-                          </div>
-                        </div>
-                        <span class="cp-badge" style="background:{CP_RED_LIGHT}; color:{CP_RED};">
-                          Completed
-                        </span>
-                      </div>
-                      <div style="margin-top:10px;">{tags_html}</div>
-                      <div style="margin-top:12px; display: flex; gap: 16px; flex-wrap: wrap;">
-                        {f'<a href="{url}" target="_blank" style="color:{CP_NAVY}; font-weight:700;">View hearing page →</a>' if url else ""}
-                        <span style="color:{summary_color}; font-weight: 500;">{summary_badge}</span>
-                      </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    past_url_link = (
+                        f'<a href="{url}" target="_blank" style="color:{CP_NAVY}; font-weight:700;">View hearing page →</a>'
+                        if url else ""
+                    )
+                    past_card_html = (
+                        f'<div class="cp-card" style="border-left: 7px solid {CP_RED}; opacity: 0.9;">'
+                        f'<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px;">'
+                        f'<div>'
+                        f'<div style="font-size:14px; font-weight:700; color:{CP_NAVY}; margin-bottom:4px;">{committee_esc2}</div>'
+                        f'<div style="font-size:16px; font-weight:700; color:{TEXT_DARK};">{topic_esc2}</div>'
+                        f'<div class="cp-muted" style="margin-top:4px;">'
+                        f'<strong>Time:</strong> {time_esc2} &nbsp;|&nbsp; '
+                        f'<strong>Location:</strong> {loc_esc2}'
+                        f'</div>'
+                        f'</div>'
+                        f'<span class="cp-badge" style="background:{CP_RED_LIGHT}; color:{CP_RED};">Completed</span>'
+                        f'</div>'
+                        f'<div style="margin-top:10px;">{tags_html}</div>'
+                        f'<div style="margin-top:12px; display:flex; gap:16px; flex-wrap:wrap;">'
+                        f'{past_url_link}'
+                        f'<span style="color:{summary_color}; font-weight:500;">{summary_badge}</span>'
+                        f'</div>'
+                        f'</div>'
+                    )
+                    st.markdown(past_card_html, unsafe_allow_html=True)
 
                     # Show AI summary if available
                     if has_summary:
@@ -1292,6 +1623,199 @@ def load_json_file(path, default):
     if path.exists():
         return json.loads(path.read_text())
     return default
+
+# ======================
+# Bills Tab
+# ======================
+TRACKED_BILLS_PATH = DATA_DIR / "tracked_bills.json"
+BILLS_STATUS_PATH  = DATA_DIR / "bills_status.json"
+
+with tab_bills:
+    st.subheader("📋 119th Congress — ClearPath Priority Bills")
+    st.caption("Legislation ClearPath is actively tracking, tied to 119th Congress KPIs.")
+
+    tracked_bills  = load_json_file(TRACKED_BILLS_PATH, [])
+    bills_statuses = {b["id"]: b for b in load_json_file(BILLS_STATUS_PATH, [])}
+
+    STATUS_META = {
+        "watching":       ("Watching",        CP_NAVY,    CP_BLUE_LIGHT),
+        "introduced":     ("Introduced",      "#374151",  "#F3F4F6"),
+        "in_committee":   ("In Committee",    "#1D4ED8",  "#DBEAFE"),
+        "markup":         ("Markup 🔥",       "#B45309",  "#FEF3C7"),
+        "passed_chamber": ("Passed Chamber",  "#6D28D9",  "#EDE9FE"),
+        "enacted":        ("Enacted ✓",       "#166534",  "#DCFCE7"),
+        "stalled":        ("Stalled",         "#6B7280",  "#F3F4F6"),
+    }
+
+    PRIORITY_BADGE = {
+        "High":   (CP_RED,    CP_RED_LIGHT),
+        "Medium": (CP_NAVY,   CP_BLUE_LIGHT),
+    }
+
+    if not tracked_bills:
+        st.info("No tracked bills found. Add bills to data/tracked_bills.json.")
+    else:
+        # Group by KPI area
+        by_area = {}
+        for bill in tracked_bills:
+            area = bill.get("kpi_area", "Other")
+            by_area.setdefault(area, []).append(bill)
+
+        # Summary metrics
+        total        = len(tracked_bills)
+        high_pri     = sum(1 for b in tracked_bills if b.get("clearpath_priority") == "High")
+        active_count = sum(1 for b in tracked_bills if bills_statuses.get(b["id"], {}).get("status", "watching") not in ("watching", "stalled"))
+        enacted      = sum(1 for b in tracked_bills if bills_statuses.get(b["id"], {}).get("status") == "enacted")
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Bills Tracked", total)
+        m2.metric("High Priority", high_pri)
+        m3.metric("Active / Moving", active_count)
+        m4.metric("Enacted", enacted)
+
+        col_run, col_info = st.columns([1, 4])
+        with col_run:
+            if st.button("🔄 Refresh Bill Status", type="secondary"):
+                import subprocess, sys
+                with st.spinner("Fetching bill status from Congress.gov..."):
+                    result = subprocess.run(
+                        [sys.executable, "fetch_bills.py"],
+                        capture_output=True, text=True,
+                        cwd=str(Path(__file__).parent)
+                    )
+                    if result.returncode == 0:
+                        st.success("Bill statuses updated!")
+                        st.rerun()
+                    else:
+                        st.error("Update failed")
+                        st.code(result.stderr[:500])
+        with col_info:
+            last_run = min(
+                (b.get("last_updated_utc", "") for b in bills_statuses.values()),
+                default=""
+            )
+            if last_run:
+                st.caption(f"Last refreshed: {last_run[:10]}")
+            else:
+                st.caption("Status not yet fetched. Click 'Refresh Bill Status' above, or run: `python fetch_bills.py`")
+
+        st.markdown("---")
+
+        # Filter
+        pri_filter = st.radio(
+            "Filter by priority:",
+            ["All", "High", "Medium"],
+            horizontal=True,
+            key="bills_priority_filter"
+        )
+
+        for area, bills in sorted(by_area.items()):
+            if pri_filter != "All":
+                bills = [b for b in bills if b.get("clearpath_priority") == pri_filter]
+            if not bills:
+                continue
+
+            st.markdown(f"### {area}")
+
+            for bill in bills:
+                bid        = bill["id"]
+                live       = bills_statuses.get(bid, {})
+                raw_status = live.get("status", bill.get("status", "watching")).lower()
+                s_label, s_fg, s_bg = STATUS_META.get(raw_status, STATUS_META["watching"])
+                pri        = bill.get("clearpath_priority", "Medium")
+                p_fg, p_bg = PRIORITY_BADGE.get(pri, PRIORITY_BADGE["Medium"])
+                tags_html  = "".join(
+                    f'<span style="background:#F3F4F6; color:#374151; font-size:11px; '
+                    f'padding:2px 8px; border-radius:999px; margin-right:5px;">{t}</span>'
+                    for t in bill.get("tags", [])[:4]
+                )
+                latest_action = live.get("latest_action", "")
+                action_date   = live.get("action_date", "")
+                congress_url  = live.get("congress_url", "")
+                bill_num_str  = ""
+                if live.get("bill_type") and live.get("bill_number"):
+                    bill_num_str = f'{live["bill_type"].upper()} {live["bill_number"]}'
+
+                action_html = ""
+                if latest_action:
+                    action_html = f"""
+                    <div style="margin-top:8px; font-size:12px; color:{CP_GREY_DARK};
+                                background:#F9FAFB; padding:8px 12px; border-radius:6px;">
+                        <strong>Latest action {f'({action_date})' if action_date else ''}:</strong>
+                        {latest_action[:200]}{'…' if len(latest_action) > 200 else ''}
+                    </div>"""
+
+                link_html = ""
+                if congress_url:
+                    link_html = f'<a href="{congress_url}" target="_blank" style="color:{CP_NAVY}; font-size:12px; font-weight:600;">Congress.gov →</a>'
+
+                st.markdown(f"""
+                <div style="background: white; border: 1px solid #E5E7EB;
+                            border-left: 6px solid {p_fg};
+                            border-radius: 0 8px 8px 0; padding: 16px 20px;
+                            margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                    <div style="flex:1;">
+                      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
+                        <span style="font-size:15px; font-weight:700; color:{CP_NAVY};">
+                          {bill["name"]}
+                        </span>
+                        {f'<span style="font-size:11px; color:{CP_GREY_DARK}; font-weight:500;">({bill_num_str})</span>' if bill_num_str else ""}
+                      </div>
+                      <div style="font-size:13px; color:#374151; margin-bottom:6px; line-height:1.4;">
+                        {bill["full_name"]}
+                      </div>
+                      <div style="font-size:12px; color:{CP_GREY_DARK}; margin-bottom:8px;">
+                        <strong>KPI Goal:</strong> {bill.get("kpi_goal","")[:160]}{'…' if len(bill.get("kpi_goal","")) > 160 else ""}
+                      </div>
+                      <div style="margin-bottom:6px; font-size:12px; color:{CP_GREY_DARK};">
+                        📋 <strong>Senate:</strong> {bill.get("committee_senate","")} &nbsp;|&nbsp;
+                        🏛 <strong>House:</strong> {bill.get("committee_house","")}
+                      </div>
+                      <div>{tags_html}</div>
+                      {action_html}
+                      {f'<div style="margin-top:10px;">{link_html}</div>' if link_html else ""}
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
+                      <span style="background:{p_bg}; color:{p_fg}; font-size:11px;
+                                   font-weight:700; padding:3px 10px; border-radius:999px;
+                                   white-space:nowrap;">
+                        {pri} Priority
+                      </span>
+                      <span style="background:{s_bg}; color:{s_fg}; font-size:11px;
+                                   font-weight:700; padding:3px 10px; border-radius:999px;
+                                   white-space:nowrap;">
+                        {s_label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Notes inline editor
+                with st.expander("📝 Notes / ClearPath position", expanded=False):
+                    note_key   = f"bill_note_{bid}"
+                    saved_note = live.get("notes", bill.get("notes", ""))
+                    new_note   = st.text_area(
+                        "Internal notes",
+                        value=saved_note,
+                        key=note_key,
+                        height=80,
+                        label_visibility="collapsed",
+                        placeholder="Add ClearPath position, contacts, strategy notes..."
+                    )
+                    if st.button("Save", key=f"save_bill_{bid}"):
+                        all_statuses = load_json_file(BILLS_STATUS_PATH, [])
+                        found = False
+                        for b in all_statuses:
+                            if b["id"] == bid:
+                                b["notes"] = new_note
+                                found = True
+                                break
+                        if not found:
+                            all_statuses.append({"id": bid, "notes": new_note, "status": raw_status})
+                        BILLS_STATUS_PATH.write_text(json.dumps(all_statuses, indent=2))
+                        st.success("Notes saved!")
 
 with tab_updates:
     st.subheader("🧭 Updates since last scout run")

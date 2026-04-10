@@ -1,0 +1,43 @@
+# ========================
+# Secrets & credentials
+# ========================
+data/config.json
+.env
+*service_account*.json
+*-credentials.json
+
+# ========================
+# Generated / runtime data
+# ========================
+data/hearings_seed.json
+data/review_queue.json
+data/source_health.json
+data/enrichment_cache.json
+data/scheduler_log.json
+data/summaries.json
+data/digest_preview.html
+data/bills_status.json
+data/tracked_bills.json
+logs/
+
+# ========================
+# Backups / scratch
+# ========================
+*.bak
+*.backup
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db

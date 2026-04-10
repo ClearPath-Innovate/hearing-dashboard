@@ -1,0 +1,77 @@
+name: Friday Hearings Digest
+
+on:
+  # Every Friday at 3:00 PM ET (19:00 UTC — accounts for ET = UTC-4 in summer)
+  schedule:
+    - cron: "0 19 * * 5"
+
+  # Manual trigger from the Actions tab (useful for testing)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Digest mode"
+        required: false
+        default: "weekly"
+        type: choice
+        options:
+          - weekly
+          - this-week
+          - daily
+
+jobs:
+  send-digest:
+    name: Generate & Send Digest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ── Pull latest hearings data from the persistent store ──────────────
+      # hearings_seed.json is gitignored (it's local). The job needs data to
+      # work with. Two options (uncomment the one you use):
+      #
+      # Option A — S3 bucket (recommended for production):
+      # - name: Download hearings data from S3
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #   run: aws s3 cp s3://your-bucket/hearings_seed.json data/hearings_seed.json
+      #
+      # Option B — commit a fresh copy before each push (simplest for now):
+      # If you add hearings_seed.json to git tracking (remove from .gitignore),
+      # it will be checked out automatically above.
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write config.json from secrets
+        run: |
+          mkdir -p data
+          cat > data/config.json << 'EOF'
+          {
+            "congress_api_key": "${{ secrets.CONGRESS_API_KEY }}",
+            "govinfo_api_key":  "${{ secrets.GOVINFO_API_KEY }}",
+            "dashboard_url":    "${{ secrets.DASHBOARD_URL }}",
+            "digest": {
+              "gmail_user":         "${{ secrets.GMAIL_USER }}",
+              "gmail_app_password": "${{ secrets.GMAIL_APP_PASSWORD }}",
+              "from_name":          "ClearPath Hearings Dashboard",
+              "to_emails":          ${{ secrets.DIGEST_TO_EMAILS }}
+            }
+          }
+          EOF
+
+      - name: Run digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          MODE="${{ github.event.inputs.mode || 'weekly' }}"
+          python digest.py --$MODE

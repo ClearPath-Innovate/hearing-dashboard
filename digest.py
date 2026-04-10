@@ -156,13 +156,15 @@ def score_hearings_batch(hearings: list) -> dict:
 # ---------------------------------------------------------------------------
 # ClearPath brand colors
 # ---------------------------------------------------------------------------
-CP_NAVY      = "#193D69"
-CP_RED       = "#9D1C20"
+CP_NAVY       = "#193D69"
+CP_NAVY_DARK  = "#122D50"
+CP_RED        = "#9D1C20"
+CP_RED_LIGHT  = "#FDECEA"
 CP_GREY_LIGHT = "#F4F6F9"
-CP_GREY_MED  = "#E8ECF0"
-CP_GREY_DARK = "#6B7280"
-CP_TEXT      = "#1F2937"
-CP_WHITE     = "#FFFFFF"
+CP_GREY_MED   = "#E8ECF0"
+CP_GREY_DARK  = "#6B7280"
+CP_TEXT       = "#1F2937"
+CP_WHITE      = "#FFFFFF"
 
 # ---------------------------------------------------------------------------
 # Hearing helpers
@@ -243,33 +245,35 @@ def week_of(anchor: date):
 # HTML builders
 # ---------------------------------------------------------------------------
 def hearing_card_html(h: dict, show_date: bool = False) -> str:
-    committee   = h.get("committee", "")
-    topic       = h.get("topic", "No title")
-    time_str    = h.get("time", "TBD")
-    location    = h.get("location", "TBD")
-    why         = re.sub(r'<[^>]+>', ' ', h.get("why", "")).strip()
-    why         = re.sub(r'\s+', ' ', why)
+    committee    = h.get("committee", "")
+    topic        = h.get("topic", "No title")
+    time_str     = h.get("time", "TBD")
+    location     = h.get("location", "TBD")
+    why          = re.sub(r'<[^>]+>', ' ', h.get("why", "")).strip()
+    why          = re.sub(r'\s+', ' ', why)
     if why.lower() in {"search congress.gov", "search", "view details"}:
         why = ""
-    url         = h.get("url", "")
+    url          = h.get("url", "")
     congress_url = h.get("congress_url", "")
-    witnesses   = [w for w in (h.get("witnesses") or []) if w and w != "TBD"]
-    bills       = h.get("bills") or []
-    is_pri      = h.get("_is_priority", False)
-    d           = h.get("_date")
+    witnesses    = [w for w in (h.get("witnesses") or []) if w and w != "TBD"]
+    bills        = h.get("bills") or []
+    is_pri       = h.get("_is_priority", False)
+    is_ai        = h.get("_is_ai_flagged", False)
+    ai_reason    = h.get("_ai_reason", "")
+    d            = h.get("_date")
 
-    border_color = CP_RED if is_pri else CP_NAVY
-    badge_bg     = "#FDECEA" if is_pri else "#EBF2FA"
-    badge_color  = CP_RED   if is_pri else CP_NAVY
-    badge_text   = "⭐ Priority" if is_pri else "Tracked"
+    border_color = CP_RED  if is_pri else CP_NAVY
+    badge_bg     = CP_RED_LIGHT if is_pri else "#EBF2FA"
+    badge_color  = CP_RED  if is_pri else CP_NAVY
+    badge_text   = "&#11088; Priority" if is_pri else "Tracked"
 
     date_line = ""
     if show_date and d:
         date_line = f"""
-        <div style="font-size:12px; color:{CP_GREY_DARK}; font-weight:600;
-                    text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+        <tr><td style="padding:0 0 8px 0; font-size:11px; color:{CP_GREY_DARK};
+                       font-weight:700; text-transform:uppercase; letter-spacing:0.8px;">
           {d.strftime("%A, %B %-d")}
-        </div>"""
+        </td></tr>"""
 
     witness_html = ""
     if witnesses:
@@ -277,70 +281,100 @@ def hearing_card_html(h: dict, show_date: bool = False) -> str:
         if len(witnesses) > 4:
             witness_list += f" +{len(witnesses)-4} more"
         witness_html = f"""
-        <div style="margin-top:10px; font-size:13px; color:{CP_GREY_DARK};">
+        <tr><td style="padding:8px 0 0 0; font-size:13px; color:{CP_GREY_DARK}; line-height:1.5;">
           <strong style="color:{CP_TEXT};">Witnesses:</strong> {witness_list}
-        </div>"""
+        </td></tr>"""
 
     bills_html = ""
     if bills:
         bills_html = f"""
-        <div style="margin-top:6px; font-size:13px; color:{CP_GREY_DARK};">
+        <tr><td style="padding:4px 0 0 0; font-size:13px; color:{CP_GREY_DARK};">
           <strong style="color:{CP_TEXT};">Bills:</strong> {", ".join(bills[:4])}
-        </div>"""
+        </td></tr>"""
 
     why_html = ""
     if why:
+        snippet = why[:280] + ("…" if len(why) > 280 else "")
         why_html = f"""
-        <div style="margin-top:10px; padding:10px 14px; background:#F0F4F8;
-                    border-radius:6px; font-size:13px; color:{CP_TEXT}; line-height:1.5;">
-          <strong>Why it matters:</strong> {why}
-        </div>"""
+        <tr><td style="padding:10px 0 0 0;">
+          <div style="padding:10px 14px; background:{CP_GREY_LIGHT};
+                      border-left:3px solid {CP_GREY_MED}; font-size:13px;
+                      color:{CP_TEXT}; line-height:1.55;">
+            <strong>Why it matters:</strong> {snippet}
+          </div>
+        </td></tr>"""
+
+    ai_html = ""
+    if is_ai and ai_reason and not is_pri:
+        ai_html = f"""
+        <tr><td style="padding:8px 0 0 0;">
+          <div style="padding:8px 12px; background:#FFF8E7; border-left:3px solid #F59E0B;
+                      font-size:12px; color:#92400E; line-height:1.5;">
+            <strong>AI flagged:</strong> {ai_reason}
+          </div>
+        </td></tr>"""
 
     link_html = ""
     if url:
         secondary = ""
         if congress_url and congress_url != url:
-            secondary = f"""
-          <a href="{congress_url}" style="font-size:12px; color:{CP_GREY_DARK};
-             text-decoration:none; margin-left:14px;">Congress.gov record</a>"""
+            secondary = f"""&nbsp;&nbsp;<a href="{congress_url}"
+                style="font-size:12px; color:{CP_GREY_DARK}; text-decoration:none;">
+                Congress.gov &#8599;</a>"""
         link_html = f"""
-        <div style="margin-top:14px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+        <tr><td style="padding:14px 0 0 0;">
           <a href="{url}" style="display:inline-block; background:{CP_NAVY}; color:{CP_WHITE};
-             font-size:13px; font-weight:600; padding:8px 18px; border-radius:5px;
-             text-decoration:none;">View Hearing Details →</a>{secondary}
-        </div>"""
+             font-size:13px; font-weight:600; padding:8px 20px; border-radius:4px;
+             text-decoration:none; letter-spacing:0.2px;">View Details &#8594;</a>{secondary}
+        </td></tr>"""
 
     return f"""
-    <div style="margin-bottom:18px; border-left:5px solid {border_color};
-                background:{CP_WHITE}; border-radius:0 8px 8px 0;
-                padding:16px 20px; box-shadow:0 1px 4px rgba(0,0,0,0.07);">
-      {date_line}
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
-        <div style="flex:1;">
-          <div style="font-size:12px; font-weight:700; color:{CP_NAVY};
-                      text-transform:uppercase; letter-spacing:0.4px; margin-bottom:5px;">
-            {committee}
-          </div>
-          <div style="font-size:16px; font-weight:700; color:{CP_TEXT}; line-height:1.3;">
-            {topic}
-          </div>
-          <div style="margin-top:6px; font-size:13px; color:{CP_GREY_DARK};">
-            🕐 {time_str} &nbsp;&nbsp; 📍 {location}
-          </div>
-        </div>
-        <div style="flex-shrink:0;">
-          <span style="display:inline-block; background:{badge_bg}; color:{badge_color};
-                       font-size:11px; font-weight:700; padding:4px 10px;
-                       border-radius:999px; white-space:nowrap;">
-            {badge_text}
-          </span>
-        </div>
-      </div>
-      {witness_html}
-      {bills_html}
-      {why_html}
-      {link_html}
-    </div>"""
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="margin-bottom:16px; border-left:4px solid {border_color};
+                  background:{CP_WHITE}; border-radius:0 6px 6px 0;
+                  border:1px solid {CP_GREY_MED}; border-left:4px solid {border_color};">
+      <tr>
+        <td style="padding:16px 20px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            {date_line}
+            <!-- Committee row with badge -->
+            <tr>
+              <td style="padding:0 0 4px 0;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="font-size:11px; font-weight:700; color:{CP_NAVY};
+                               text-transform:uppercase; letter-spacing:0.6px;">
+                      {committee}
+                    </td>
+                    <td align="right" style="white-space:nowrap; padding-left:10px;">
+                      <span style="display:inline-block; background:{badge_bg}; color:{badge_color};
+                                   font-size:11px; font-weight:700; padding:3px 10px;
+                                   border-radius:20px;">
+                        {badge_text}
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <!-- Topic -->
+            <tr><td style="padding:2px 0 6px 0; font-size:15px; font-weight:700;
+                           color:{CP_TEXT}; line-height:1.35;">
+              {topic}
+            </td></tr>
+            <!-- Time / Location -->
+            <tr><td style="padding:0 0 0 0; font-size:13px; color:{CP_GREY_DARK};">
+              &#128336; {time_str} &nbsp;&nbsp; &#128205; {location}
+            </td></tr>
+            {witness_html}
+            {bills_html}
+            {why_html}
+            {ai_html}
+            {link_html}
+          </table>
+        </td>
+      </tr>
+    </table>"""
 
 
 def build_daily_html(target_date: date, hearings: List[dict]) -> str:
@@ -454,10 +488,86 @@ def build_weekly_html(week_start: date, hearings: List[dict], this_week: bool = 
     )
 
 
+def build_quiet_html(target_date: date, mode: str) -> str:
+    """Generate a useful 'quiet week' email instead of sending blank."""
+    # Figure out next Monday Congress is likely back
+    days_until_monday = (7 - target_date.weekday()) % 7 or 7
+    next_monday = target_date + timedelta(days=days_until_monday)
+
+    if mode == "daily":
+        title    = f"GA Update — No Hearings Today ({target_date.strftime('%b %-d')})"
+        subtitle = "Congress is quiet today — here's your situational update"
+        context  = f"No relevant hearings are scheduled for today, {target_date.strftime('%A, %B %-d')}. Congress may be in recess or it is a light day."
+    else:
+        week_start = target_date - timedelta(days=target_date.weekday())
+        week_end   = week_start + timedelta(days=4)
+        week_label = f"{week_start.strftime('%b %-d')}–{week_end.strftime('%-d')}"
+        title    = f"GA Update — Quiet Week ({week_label})"
+        subtitle = "No priority hearings this week — situational awareness below"
+        context  = f"No relevant hearings are currently tracked for the week of {week_label}. Congress may be in recess or hearing schedules have not yet been posted."
+
+    body = f"""
+    <div style="padding: 24px; background: white; border-radius: 8px; margin-bottom: 20px;">
+      <div style="font-size: 15px; color: {CP_TEXT}; line-height: 1.6; margin-bottom: 20px;">
+        {context}
+      </div>
+
+      <div style="background: {CP_GREY_LIGHT}; border-left: 4px solid {CP_NAVY};
+                  padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
+        <div style="font-size: 13px; font-weight: 700; color: {CP_NAVY};
+                    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+          What to do this week
+        </div>
+        <ul style="margin: 0; padding-left: 18px; color: {CP_TEXT}; font-size: 14px; line-height: 1.8;">
+          <li>Check committee websites for newly posted notices</li>
+          <li>Monitor markup schedules — these are often posted with short notice</li>
+          <li>Review past priority hearing transcripts in the dashboard</li>
+          <li>Watch for press releases signaling upcoming hearing topics</li>
+        </ul>
+      </div>
+
+      <div style="background: #EBF2FA; border-left: 4px solid {CP_NAVY};
+                  padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
+        <div style="font-size: 13px; font-weight: 700; color: {CP_NAVY};
+                    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+          Upcoming
+        </div>
+        <div style="font-size: 14px; color: {CP_TEXT}; line-height: 1.6;">
+          Next scheduled check: <strong>{next_monday.strftime('%A, %B %-d')}</strong> —
+          the dashboard will surface new hearings automatically as they are posted.
+        </div>
+      </div>
+
+    </div>"""
+
+    return _wrap_email(
+        title=title,
+        subtitle=subtitle,
+        summary_text="No relevant hearings found — see situational update below.",
+        summary_color=CP_GREY_DARK,
+        body=body,
+    )
+
+
 def _wrap_email(title: str, subtitle: str, summary_text: str,
                 summary_color: str, body: str) -> str:
-    logo_url = "https://clearpath.org/wp-content/uploads/sites/44/2023/08/clearpath-logo.png"
+    logo_url  = "https://clearpath.org/wp-content/uploads/sites/44/2023/08/clearpath-logo.png"
     today_str = date.today().strftime("%B %-d, %Y")
+    # Read dashboard URL from config, fall back to generic label
+    dashboard_url = cfg.get("dashboard_url", "")
+
+    dash_link = (
+        f'<a href="{dashboard_url}" style="display:inline-block; background:{CP_NAVY}; '
+        f'color:{CP_WHITE}; font-size:13px; font-weight:600; padding:9px 22px; '
+        f'border-radius:4px; text-decoration:none; letter-spacing:0.2px;">Open Dashboard &#8594;</a>'
+        if dashboard_url else ""
+    )
+    dash_footer = (
+        f'<a href="{dashboard_url}" style="font-size:12px; color:{CP_NAVY}; '
+        f'text-decoration:none; font-weight:600;">Open Dashboard &#8594;</a>'
+        if dashboard_url else
+        '<span style="font-size:12px; color:{CP_GREY_DARK};">ClearPath Hearings Dashboard</span>'
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -466,68 +576,87 @@ def _wrap_email(title: str, subtitle: str, summary_text: str,
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
 </head>
-<body style="margin:0; padding:0; background:{CP_GREY_LIGHT}; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+<body style="margin:0; padding:0; background:{CP_GREY_LIGHT};
+             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
 
-  <!-- Wrapper -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:{CP_GREY_LIGHT}; padding:30px 0;">
+  <table width="100%" cellpadding="0" cellspacing="0"
+         style="background:{CP_GREY_LIGHT}; padding:32px 16px;">
     <tr><td align="center">
-      <table width="640" cellpadding="0" cellspacing="0" style="max-width:640px; width:100%;">
+      <table width="620" cellpadding="0" cellspacing="0"
+             style="max-width:620px; width:100%; border-radius:10px;
+                    box-shadow:0 2px 12px rgba(0,0,0,0.10);">
 
-        <!-- Header -->
+        <!-- ── Navy header ── -->
         <tr>
-          <td style="background:{CP_NAVY}; padding:24px 32px; border-radius:10px 10px 0 0;">
+          <td style="background:{CP_NAVY}; padding:28px 32px 22px; border-radius:10px 10px 0 0;">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
-                  <img src="{logo_url}" height="36" alt="ClearPath"
-                style="display:block; height:36px; background:white; padding:4px 8px; border-radius:4px;">
+                  <img src="{logo_url}" height="34" alt="ClearPath"
+                       style="display:block; height:34px; background:{CP_WHITE};
+                              padding:4px 8px; border-radius:4px;">
                 </td>
-                <td align="right">
-                  <span style="color:rgba(255,255,255,0.7); font-size:12px;">
+                <td align="right" style="vertical-align:middle;">
+                  <span style="color:rgba(255,255,255,0.65); font-size:12px;
+                               font-weight:500; letter-spacing:0.2px;">
                     {today_str}
                   </span>
                 </td>
               </tr>
             </table>
-            <div style="margin-top:16px; color:{CP_WHITE}; font-size:22px; font-weight:700;
-                        line-height:1.2;">
+            <!-- Red accent line -->
+            <div style="margin:18px 0 14px; height:2px; background:{CP_RED};
+                        border-radius:2px; width:48px;"></div>
+            <div style="color:{CP_WHITE}; font-size:21px; font-weight:700;
+                        line-height:1.25; letter-spacing:-0.2px;">
               {title}
             </div>
-            <div style="margin-top:4px; color:rgba(255,255,255,0.75); font-size:13px;">
+            <div style="margin-top:5px; color:rgba(255,255,255,0.70); font-size:13px;
+                        font-weight:400;">
               {subtitle}
             </div>
           </td>
         </tr>
 
-        <!-- Summary bar -->
+        <!-- ── Summary bar ── -->
         <tr>
-          <td style="background:{summary_color}; padding:12px 32px;">
-            <span style="color:{CP_WHITE}; font-size:13px;">{summary_text}</span>
+          <td style="background:{summary_color}; padding:11px 32px;">
+            <span style="color:{CP_WHITE}; font-size:13px; font-weight:500;">
+              {summary_text}
+            </span>
           </td>
         </tr>
 
-        <!-- Body -->
+        <!-- ── Body ── -->
         <tr>
-          <td style="background:{CP_WHITE}; padding:28px 32px;">
+          <td style="background:{CP_WHITE}; padding:28px 32px 24px;">
             {body}
           </td>
         </tr>
 
-        <!-- Footer -->
+        <!-- ── Dashboard CTA (if URL configured) ── -->
+        {"" if not dashboard_url else f'''
         <tr>
-          <td style="background:{CP_GREY_MED}; padding:18px 32px;
+          <td style="background:{CP_GREY_LIGHT}; padding:18px 32px; text-align:center;
+                     border-top:1px solid {CP_GREY_MED};">
+            {dash_link}
+            <div style="margin-top:8px; font-size:11px; color:{CP_GREY_DARK};">
+              View all tracked hearings and manage assignments
+            </div>
+          </td>
+        </tr>'''}
+
+        <!-- ── Footer ── -->
+        <tr>
+          <td style="background:{CP_GREY_MED}; padding:16px 32px;
                      border-radius:0 0 10px 10px; border-top:1px solid #D1D5DB;">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td style="font-size:12px; color:{CP_GREY_DARK};">
-                  Sent by the ClearPath Hearings Dashboard &nbsp;·&nbsp;
-                  Data from Congress.gov API
+                <td style="font-size:12px; color:{CP_GREY_DARK}; line-height:1.6;">
+                  ClearPath Government Affairs &nbsp;·&nbsp; Data from Congress.gov
                 </td>
                 <td align="right">
-                  <a href="http://localhost:8501"
-                     style="font-size:12px; color:{CP_NAVY}; text-decoration:none; font-weight:600;">
-                    Open Dashboard →
-                  </a>
+                  {dash_footer}
                 </td>
               </tr>
             </table>
@@ -616,10 +745,14 @@ def run(
 
     if mode == "daily":
         hearings = get_hearings_for_range(today, today)
-        html     = build_daily_html(today, hearings)
-        date_str = today.strftime("%b %-d")
         pri      = sum(1 for h in hearings if h.get("_is_priority"))
-        subject  = f"Hearings Today ({date_str})" + (f" — {pri} Priority" if pri else "")
+        date_str = today.strftime("%b %-d")
+        if not hearings:
+            html    = build_quiet_html(today, mode="daily")
+            subject = f"GA Update — No Hearings Today ({date_str})"
+        else:
+            html    = build_daily_html(today, hearings)
+            subject = f"Hearings Today ({date_str})" + (f" — {pri} Priority" if pri else "")
         print(f"Found {len(hearings)} hearings for {today} ({pri} priority)")
 
     elif mode == "this_week":
@@ -627,10 +760,14 @@ def run(
         week_start = today - timedelta(days=today.weekday())  # back to Monday
         week_end   = week_start + timedelta(days=4)
         hearings   = get_hearings_for_range(week_start, week_end)
-        html       = build_weekly_html(week_start, hearings, this_week=True)
         pri        = sum(1 for h in hearings if h.get("_is_priority"))
         week_label = f"{week_start.strftime('%b %-d')}–{week_end.strftime('%-d')}"
-        subject    = f"This Week's Hearings ({week_label})" + (f" — {pri} Priority" if pri else "")
+        if not hearings:
+            html    = build_quiet_html(week_start, mode="this_week")
+            subject = f"GA Update — Quiet Week ({week_label})"
+        else:
+            html    = build_weekly_html(week_start, hearings, this_week=True)
+            subject = f"This Week's Hearings ({week_label})" + (f" — {pri} Priority" if pri else "")
         print(f"Found {len(hearings)} hearings for this week ({week_start} → {week_end}, {pri} priority)")
 
     else:  # "weekly" — next week's preview (Fridays)
@@ -638,10 +775,14 @@ def run(
         week_start = today + timedelta(days=(7 - today.weekday()))
         week_end   = week_start + timedelta(days=4)
         hearings   = get_hearings_for_range(week_start, week_end)
-        html       = build_weekly_html(week_start, hearings, this_week=False)
         pri        = sum(1 for h in hearings if h.get("_is_priority"))
         week_label = f"{week_start.strftime('%b %-d')}–{week_end.strftime('%-d')}"
-        subject    = f"Next Week's Hearings ({week_label})" + (f" — {pri} Priority" if pri else "")
+        if not hearings:
+            html    = build_quiet_html(week_start, mode="weekly")
+            subject = f"GA Update — Next Week Preview ({week_label})"
+        else:
+            html    = build_weekly_html(week_start, hearings, this_week=False)
+            subject = f"Next Week's Hearings ({week_label})" + (f" — {pri} Priority" if pri else "")
         print(f"Found {len(hearings)} hearings for week of {week_start} ({pri} priority)")
 
     if preview:

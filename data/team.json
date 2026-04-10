@@ -1,0 +1,21 @@
+{
+  "members": [
+    {"name": "Amanda", "email": "amanda@clearpath.org", "role": "Government Affairs"},
+    {"name": "Greg",   "email": "greg@clearpath.org",   "role": "Government Affairs"},
+    {"name": "Mackenzie", "email": "mackenzie@clearpath.org", "role": "AI Operations"},
+    {"name": "George", "email": "gsmith@clearpath.org", "role": "Government Affairs"},
+    {"name": "Jake", "email": "kunzler@clearpath.org", "role": "Policy"}
+  ],
+
+  "actions": [
+    "Monitoring",
+    "Attending",
+    "Submitting Testimony",
+    "No Action Needed"
+  ],
+  "statuses": [
+    "Not Started",
+    "In Progress",
+    "Done"
+  ]
+}
