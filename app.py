@@ -1833,19 +1833,38 @@ with tab_updates:
     with col1:
         if st.button("🔄 Run Scout Now", type="primary"):
             with st.spinner("Scanning Congress.gov for new hearings..."):
-                import subprocess
+                import subprocess, sys
+
+                # On Streamlit Cloud, config.json doesn't exist — write it from st.secrets
+                _cfg_path = Path(__file__).parent / "data" / "config.json"
+                if not _cfg_path.exists():
+                    try:
+                        _cfg_path.parent.mkdir(exist_ok=True)
+                        _cfg_data = {
+                            "congress_api_key": st.secrets.get("CONGRESS_API_KEY", ""),
+                            "govinfo_api_key":  st.secrets.get("GOVINFO_API_KEY", "DEMO_KEY"),
+                            "digest": {
+                                "gmail_user":         st.secrets.get("GMAIL_USER", ""),
+                                "gmail_app_password": st.secrets.get("GMAIL_APP_PASSWORD", ""),
+                                "from_name":          "ClearPath Hearings Dashboard",
+                            }
+                        }
+                        _cfg_path.write_text(json.dumps(_cfg_data, indent=2))
+                    except Exception:
+                        pass
+
                 result = subprocess.run(
-                    ["python3", "scout.py"],
+                    [sys.executable, "fetch_all_hearings.py"],
                     capture_output=True,
                     text=True,
                     cwd=str(Path(__file__).parent)
                 )
                 if result.returncode == 0:
-                    st.success("Scout completed! Refresh the page to see updates.")
-                    st.code(result.stdout)
+                    st.success("✅ Hearings updated! Refresh the page to see the latest schedule.")
+                    st.code(result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout)
                 else:
-                    st.error("Scout failed")
-                    st.code(result.stderr)
+                    st.error("Fetch failed")
+                    st.code(result.stderr[-2000:] if len(result.stderr) > 2000 else result.stderr)
 
     rq = load_json_file(REVIEW_QUEUE_PATH, {})
     health = load_json_file(HEALTH_PATH, {})
