@@ -9,7 +9,6 @@ data/config.json
 # ========================
 # Generated / runtime data
 # ========================
-data/hearings_seed.json
 data/review_queue.json
 data/source_health.json
 data/enrichment_cache.json
