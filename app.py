@@ -304,6 +304,14 @@ def send_assignment_email(assignee_name: str, assignee_email: str, hearing: dict
     committee = hearing.get("committee", "")
 
     link_html = f'<a href="{url}" style="color:#193D69; font-weight:600;">View Hearing Details →</a>' if url else ""
+    try:
+        dashboard_url = st.secrets.get("DASHBOARD_URL", "").strip()
+    except Exception:
+        dashboard_url = ""
+    if not dashboard_url:
+        _real_cfg2 = json.loads((DATA_DIR / "config.json").read_text()) if (DATA_DIR / "config.json").exists() else {}
+        dashboard_url = _real_cfg2.get("dashboard_url", "").strip()
+    dashboard_link_html = f'<a href="{dashboard_url}" style="color:#193D69; font-weight:600;">Open Dashboard →</a>' if dashboard_url else ""
 
     html = f"""<!DOCTYPE html>
 <html><body style="font-family:-apple-system,sans-serif; color:#1F2937; margin:0; padding:0; background:#F4F6F9;">
@@ -323,6 +331,7 @@ def send_assignment_email(assignee_name: str, assignee_email: str, hearing: dict
       <div style="font-size:13px; color:#6B7280;">📅 {date_str} &nbsp;|&nbsp; 🕐 {hearing.get("time","TBD")} &nbsp;|&nbsp; 📍 {hearing.get("location","TBD")}</div>
     </div>
     {f'<p>{link_html}</p>' if link_html else ""}
+    {f'<p>{dashboard_link_html}</p>' if dashboard_link_html else ""}
     <p style="margin-top:20px; font-size:13px; color:#6B7280;">
       This assignment was made in the ClearPath Hearings Dashboard. Reply to this email if you have questions.
     </p>
