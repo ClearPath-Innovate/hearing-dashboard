@@ -1,26 +1,26 @@
-name: Friday Hearings Digest
+name: Monday Hearings Digest
 
 on:
-  # Every Friday at 6:00 PM ET (22:00 UTC — EDT = UTC-4 in summer)
+  # Every Monday at 9:00 AM ET (13:00 UTC — EDT = UTC-4 in summer)
   schedule:
-    - cron: "0 22 * * 5"
+    - cron: "0 13 * * 1"
 
-  # Manual trigger from the Actions tab (useful for testing)
+  # Manual trigger from the Actions tab
   workflow_dispatch:
     inputs:
       mode:
         description: "Digest mode"
         required: false
-        default: "weekly"
+        default: "this-week"
         type: choice
         options:
-          - weekly
           - this-week
+          - weekly
           - daily
 
 jobs:
   send-digest:
-    name: Generate & Send Digest
+    name: Generate & Send Monday Digest
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -79,9 +79,9 @@ jobs:
         run: python fetch_all_hearings.py
         continue-on-error: true   # don't fail the whole job if fetch has issues
 
-      - name: Run digest
+      - name: Run this-week digest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          MODE="${{ github.event.inputs.mode || 'weekly' }}"
+          MODE="${{ github.event.inputs.mode || 'this-week' }}"
           python digest.py --$MODE
